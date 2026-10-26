@@ -29,6 +29,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// URL for Ko-fi support platform
   final Uri _kofiUrl = Uri.parse('https://ko-fi.com/sentientbeingapps');
 
+  /// Terms of Service and Privacy Policy hosted by Sentient Being Software
+  final Uri _privacyPolicyUrl = Uri.parse(
+    'https://www.sentientbeingsoftware.com/support/terms',
+  );
+
   /// Dynamic map of game ID → high score, populated from all registered games
   final Map<String, int> _highScores = {};
   bool _loadingScores = true;
@@ -246,6 +251,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Could not launch $_kofiUrl')));
+      }
+    }
+  }
+
+  /// Opens the privacy policy in the external browser.
+  /// Shows a message if the URL cannot be launched.
+  Future<void> _launchPrivacyPolicy() async {
+    if (!await launchUrl(_privacyPolicyUrl, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $_privacyPolicyUrl')),
+        );
       }
     }
   }
@@ -495,6 +512,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _telemetryEnabled = val;
                   });
                 },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Privacy Policy'),
+                subtitle: const Text('Read how GridMind handles your data'),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: _launchPrivacyPolicy,
               ),
             ],
           ),

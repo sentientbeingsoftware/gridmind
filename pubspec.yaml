@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # - Android: build-name = versionName, build-number = versionCode
 # - iOS: build-name = CFBundleShortVersionString, build-number = CFBundleVersion
 # - Windows: build-name = product/file version parts, build-number = build suffix
-version: 1.0.0+3
+version: 1.0.0+4
 
 # Dart SDK version requirement
 # Ensures compatibility with Flutter framework features
@@ -61,6 +61,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Used by test/privacy_policy_link_test.dart to fake the URL launcher.
+  # Already resolved transitively via url_launcher; declared to satisfy the lint.
+  plugin_platform_interface: ^2.1.8
+  url_launcher_platform_interface: ^2.3.2
   
   # App icon generation tool
   # Automatically generates platform-specific app icons from a single image

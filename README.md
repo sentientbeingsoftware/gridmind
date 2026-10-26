@@ -213,7 +213,7 @@ lib/
 ## Feedback & Issues
 Bug reports and feature requests live at <https://github.com/sentientbeingsoftware/gridmind/issues>.
 
-**Feedback sent from the app (Settings > Submit Feedback / Report Issue) is posted as a public GitHub issue in that repository.** Anyone can read it. Do not include personal information (names, email addresses, home addresses, passwords, or anything else you would not post publicly) in the title or description. The optional email field is not posted to the issue; it is stored privately and used only to reply to you if needed. Every report also includes the app version, your OS version and an anonymous session ID. The optional "Attach diagnostic metadata" switch additionally adds your game settings and high scores.
+**Feedback sent from the app (Settings > Submit Feedback / Report Issue) is posted as a public GitHub issue in that repository.** Anyone can read it. Do not include personal information (names, email addresses, home addresses, passwords, or anything else you would not post publicly) in the title or description. The optional email field is not posted to the issue; it is stored privately and used only to reply to you if needed. Every report also includes the app version, your OS version and an anonymous session ID. The optional "Attach diagnostic metadata" switch additionally adds your game settings and high scores. The privacy policy is linked in Settings > Privacy and is available at <https://www.sentientbeingsoftware.com/support/terms>.
 
 ## Contributing
 Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Report security problems privately as described in [SECURITY.md](SECURITY.md), not as a public issue.
