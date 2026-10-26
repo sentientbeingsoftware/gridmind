@@ -1,0 +1,68 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Run Analysis
+        run: flutter analyze
+      - name: Run Tests
+        run: flutter test
+
+  build-android-linux-web:
+    name: Build Android, Linux, & Web
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          # libgstreamer*: required by the audioplayers_linux plugin at configure time
+          sudo apt-get install -y libgtk-3-dev cmake ninja-build pkg-config \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Build APK
+        run: flutter build apk --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}
+      - name: Build Linux
+        run: flutter build linux --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}
+      - name: Build Web
+        run: flutter build web --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}
+
+  build-windows:
+    name: Build Windows
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Build Windows
+        run: flutter build windows --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}

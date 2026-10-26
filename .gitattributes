@@ -1,0 +1,8 @@
+# Store LF in the repo and check out LF on every OS, so edits on Windows and
+# WSL stop producing whole-file CRLF/LF diffs.
+* text=auto eol=lf
+
+# Binary assets: never convert.
+*.png binary
+*.wav binary
+*.ico binary
