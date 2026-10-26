@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest a new feature, game, or improvement
+title: "[Feature Request] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This issue is public.** Do not include personal information (names, email addresses, passwords, device identifiers).
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+      description: Describe the feature or change.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why would it help?
+      description: What problem does it solve, or what would it improve?
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+    validations:
+      required: false

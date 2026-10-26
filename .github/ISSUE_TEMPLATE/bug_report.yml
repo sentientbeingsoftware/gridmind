@@ -1,0 +1,57 @@
+name: Bug report
+description: Something in GridMind is not working
+title: "[Bug Report] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This issue is public.** Do not include personal information (names, email addresses, passwords, device identifiers), including in screenshots and logs.
+
+        For a security problem, do **not** use this form. See the [security policy](https://github.com/sentientbeingsoftware/gridmind/security/policy).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Which game, which settings, and what you did.
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. See ...
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android
+        - iOS
+        - Web
+        - Windows
+        - Linux
+        - macOS
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: GridMind version
+      description: Optional. For example 1.0.0, or the version listed in the store.
+    validations:
+      required: false
+  - type: input
+    id: os
+    attributes:
+      label: OS version or device model
+      description: Optional, for example "Android 15" or "Windows 11".
+    validations:
+      required: false

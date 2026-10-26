@@ -215,6 +215,9 @@ Bug reports and feature requests live at <https://github.com/sentientbeingsoftwa
 
 **Feedback sent from the app (Settings > Submit Feedback / Report Issue) is posted as a public GitHub issue in that repository.** Anyone can read it. Do not include personal information (names, email addresses, home addresses, passwords, or anything else you would not post publicly) in the title or description. The optional email field is not posted to the issue; it is stored privately and used only to reply to you if needed. Every report also includes the app version, your OS version and an anonymous session ID. The optional "Attach diagnostic metadata" switch additionally adds your game settings and high scores.
 
+## Contributing
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Report security problems privately as described in [SECURITY.md](SECURITY.md), not as a public issue.
+
 ## License
 Copyright 2025-2026 Sentient Being Software LLC.
 
@@ -237,3 +240,10 @@ Create `dart_defines.json` (git-ignored) in the repo root:
 Then run `flutter run --dart-define-from-file=dart_defines.json` (VS Code launch
 configs already do this). CI reads the `FEEDBACK_API_KEY` and `TELEMETRY_TOKEN`
 repository secrets.
+
+**Pull requests from forks:** GitHub does not pass repository secrets to workflows
+triggered by pull requests from forks, so both values are empty in those builds.
+Analysis and tests do not use them, and the app still compiles; only the app's
+calls to the feedback and telemetry backend would be rejected. Builds on `main`
+after a merge use the real secrets. Details are in
+[CONTRIBUTING.md](CONTRIBUTING.md#continuous-integration-and-secrets).
