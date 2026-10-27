@@ -115,5 +115,43 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('⚡ Energy: 56%'), findsOneWidget);
     });
+
+    testWidgets('shows what the last move uncovered', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: GridMinerGameScreen(
+            gridSize: 3,
+            difficulty: 'easy',
+            moveMode: 'challenge',
+            maxMoves: 10,
+            testMode: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('grid-miner-event')), findsNothing);
+
+      final cells = find.byType(GestureDetector);
+      await tester.tap(cells.at(3)); // energy pack
+      await tester.pumpAndSettle();
+      expect(find.text('Energy pack! +30 energy'), findsOneWidget);
+
+      await tester.tap(cells.at(0)); // empty
+      await tester.pumpAndSettle();
+      expect(find.text('Empty cell'), findsOneWidget);
+
+      await tester.tap(cells.at(1)); // resource
+      await tester.pumpAndSettle();
+      expect(find.text('Resource collected! +1'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Empty cell'), findsOneWidget);
+    });
   });
 }

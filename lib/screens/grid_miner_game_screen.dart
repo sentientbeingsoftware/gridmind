@@ -52,6 +52,13 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
   late int _moves;
   late int _moveLimit;
 
+  // What the last move uncovered: 'R', 'H', 'P' or 'E'; shown as a banner
+  // and as an icon on the cell until the next move.
+  String? _lastEvent;
+  int? _lastEventRow;
+  int? _lastEventCol;
+  int _lastEventAmount = 0;
+
   bool _isGameOver = false;
   bool _isGameWon = false;
 
@@ -147,6 +154,9 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
       _isGameOver = false;
       _isGameWon = false;
       _history.clear();
+      _lastEvent = null;
+      _lastEventRow = null;
+      _lastEventCol = null;
     });
   }
 
@@ -170,6 +180,10 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
       'moves': _moves,
       'isGameOver': _isGameOver,
       'isGameWon': _isGameWon,
+      'lastEvent': _lastEvent,
+      'lastEventRow': _lastEventRow,
+      'lastEventCol': _lastEventCol,
+      'lastEventAmount': _lastEventAmount,
     });
   }
 
@@ -187,6 +201,10 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
       _moves = snap['moves'] as int;
       _isGameOver = snap['isGameOver'] as bool;
       _isGameWon = snap['isGameWon'] as bool;
+      _lastEvent = snap['lastEvent'] as String?;
+      _lastEventRow = snap['lastEventRow'] as int?;
+      _lastEventCol = snap['lastEventCol'] as int?;
+      _lastEventAmount = snap['lastEventAmount'] as int;
     });
   }
 
@@ -217,6 +235,11 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
         _energy = max(0, _energy - energyCost);
       }
 
+      _lastEvent = cellContent;
+      _lastEventRow = targetRow;
+      _lastEventCol = targetCol;
+      _lastEventAmount = 0;
+
       // Process cell contents
       if (cellContent == 'R') {
         _score++;
@@ -224,11 +247,13 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
       } else if (cellContent == 'H') {
         if (widget.moveMode == 'challenge') {
           _energy = max(0, _energy - 20); // Extra hazard damage
+          _lastEventAmount = -20;
         }
         _board[targetRow][targetCol] = 'E'; // Trigger hazard, then empty
       } else if (cellContent == 'P') {
         if (widget.moveMode == 'challenge') {
           _energy = min(100, _energy + 30); // Collect power cell
+          _lastEventAmount = 30;
         }
         _board[targetRow][targetCol] = 'E'; // Empty cell
       }
@@ -246,6 +271,68 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
     if (_isGameWon || _isGameOver) {
       await submitScore(_score);
     }
+  }
+
+  IconData _eventIcon(String type) {
+    switch (type) {
+      case 'R':
+        return Icons.diamond;
+      case 'H':
+        return Icons.local_fire_department;
+      default:
+        return Icons.bolt;
+    }
+  }
+
+  Color _eventColor(String type) {
+    switch (type) {
+      case 'R':
+        return Colors.amber;
+      case 'H':
+        return Colors.deepOrange;
+      default:
+        return Colors.greenAccent;
+    }
+  }
+
+  String _eventText() {
+    final challenge = widget.moveMode == 'challenge';
+    switch (_lastEvent) {
+      case 'R':
+        return 'Resource collected! +1';
+      case 'H':
+        return challenge ? 'Hazard! -20 energy' : 'Hazard! (no damage in Zen)';
+      case 'P':
+        return challenge ? 'Energy pack! +30 energy' : 'Energy pack! (not needed in Zen)';
+      default:
+        return 'Empty cell';
+    }
+  }
+
+  Widget _buildEventBanner(ThemeData theme) {
+    final type = _lastEvent;
+    return SizedBox(
+      height: 28,
+      child: type == null
+          ? const SizedBox.shrink()
+          : Row(
+              key: const ValueKey('grid-miner-event'),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (type != 'E') ...[
+                  Icon(_eventIcon(type), size: 18, color: _eventColor(type)),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  _eventText(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: type == 'E' ? null : _eventColor(type),
+                  ),
+                ),
+              ],
+            ),
+    );
   }
 
   @override
@@ -309,6 +396,7 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
               style: theme.textTheme.titleMedium,
             ),
           ),
+          _buildEventBanner(theme),
           Container(
             width: 320,
             height: 320,
@@ -339,6 +427,10 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
                 }
 
                 final isPlayerHere = _playerRow == r && _playerCol == c;
+                final isLastEventCell = _lastEvent != null &&
+                    _lastEvent != 'E' &&
+                    _lastEventRow == r &&
+                    _lastEventCol == c;
                 final isExplored = _explored[r][c];
                 final type = _board[r][c];
 
@@ -398,10 +490,21 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
                     ),
                     child: Center(
                       child: isPlayerHere
-                          ? Icon(
-                              Icons.engineering,
-                              size: widget.gridSize > 5 ? 20 : 28,
-                              color: theme.colorScheme.primary,
+                          ? Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                if (isLastEventCell)
+                                  Icon(
+                                    _eventIcon(_lastEvent!),
+                                    size: widget.gridSize > 5 ? 26 : 38,
+                                    color: _eventColor(_lastEvent!).withValues(alpha: 0.55),
+                                  ),
+                                Icon(
+                                  Icons.engineering,
+                                  size: widget.gridSize > 5 ? 20 : 28,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ],
                             )
                           : contentWidget,
                     ),
