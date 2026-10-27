@@ -102,18 +102,6 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
         ? colors
         : [Colors.indigo, Colors.blue, Colors.teal, Colors.purple];
 
-    // Build target pattern: each quadrant solid colour (similar to RotateMatrix).
-    final Q = widget.gridSize ~/ 2;
-    final target = List.generate(widget.gridSize, (r) {
-      return List.generate(widget.gridSize, (c) {
-        final quadrant = (r ~/ Q) * 2 + (c ~/ Q);
-        return palette[quadrant % palette.length];
-      });
-    });
-
-    // Start from target and scramble using random gravity moves.
-    var active = List.generate(widget.gridSize, (r) => List<Color>.from(target[r]));
-
     // Determine scramble steps based on difficulty.
     int scrambleSteps;
     switch (widget.difficulty) {
@@ -127,16 +115,52 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
       default:
         scrambleSteps = 5;
     }
-    int applied = 0;
-    while (applied < scrambleSteps) {
-      final dir = _rand.nextInt(4);
-      active = _applyGravity(active, dir);
-      applied++;
-    }
 
-    // Ensure we didn't accidentally match target.
-    if (_areGridsEqual(active, target)) {
-      active = _applyGravity(active, 0);
+    // Build a half-empty initial board and derive the solvable target by
+    // applying random gravity moves forward (gravity is not invertible, so
+    // target = result of k shifts from the start board guarantees solvability).
+    final totalCells = widget.gridSize * widget.gridSize;
+    final filledCount = totalCells ~/ 2;
+    late List<List<Color>> active;
+    late List<List<Color>> target;
+
+    for (int attempt = 0; attempt < 30; attempt++) {
+      final flat = List<Color>.generate(
+        totalCells,
+        (i) => i < filledCount
+            ? palette[i % palette.length]
+            : Colors.transparent,
+      )..shuffle(_rand);
+
+      final start = List.generate(
+        widget.gridSize,
+        (r) => List<Color>.generate(
+          widget.gridSize,
+          (c) => flat[r * widget.gridSize + c],
+        ),
+      );
+
+      var cur = List.generate(widget.gridSize, (r) => List<Color>.from(start[r]));
+      int lastAxis = -1;
+      int applied = 0;
+      int guard = 0;
+      while (applied < scrambleSteps && guard < 40) {
+        guard++;
+        final dir = _rand.nextInt(4);
+        final axis = dir ~/ 2; // 0: vertical, 1: horizontal
+        if (applied > 0 && axis == lastAxis && guard < 25) continue;
+        final next = _applyGravity(cur, dir);
+        if (_areGridsEqual(next, cur)) continue;
+        cur = next;
+        lastAxis = axis;
+        applied++;
+      }
+
+      active = start;
+      target = cur;
+      if (!_areGridsEqual(active, target) && !_isOneShiftFromTarget(active, target)) {
+        break;
+      }
     }
 
     // Load persisted high score.
@@ -160,6 +184,13 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
         bestScore = stored;
       });
     }
+  }
+
+  bool _isOneShiftFromTarget(List<List<Color>> grid, List<List<Color>> target) {
+    for (int d = 0; d < 4; d++) {
+      if (_areGridsEqual(_applyGravity(grid, d), target)) return true;
+    }
+    return false;
   }
 
   /// Direction indices: 0 = up, 1 = down, 2 = left, 3 = right.
@@ -378,7 +409,7 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
         children: [
           const Text('Target Pattern:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          _buildGrid(_targetPattern, tileSize: 16.0),
+          _buildGrid(_targetPattern, tileSize: (110.0 / widget.gridSize).clamp(9.0, 16.0)),
         ],
       ),
       child: Center(
@@ -386,7 +417,7 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildGrid(_grid, tileSize: 48.0),
+              _buildGrid(_grid, tileSize: (260.0 / widget.gridSize).clamp(24.0, 48.0)),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

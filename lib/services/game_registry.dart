@@ -889,7 +889,7 @@ class GameRegistry {
       id: 'rotate_matrix',
       title: 'Rotate Matrix',
       description:
-          'Spin 2x2 or 3x3 quadrant sections of the grid to match a target pattern.',
+          'Spin quadrant sections of the grid to match a target pattern.',
       icon: Icons.rotate_right_outlined,
       category: 'Transformation Games',
       lowerIsBetter: true,
@@ -900,8 +900,8 @@ class GameRegistry {
           label: 'Grid Size',
           defaultValue: 4.0,
           min: 4.0,
-          max: 6.0,
-          divisions: 1,
+          max: 10.0,
+          divisions: 3,
         ),
         DropdownConfigOption<String>(
           key: 'difficulty',
@@ -949,15 +949,15 @@ class GameRegistry {
       icon: Icons.arrow_upward,
       category: 'Transformation Games',
       lowerIsBetter: true,
-      scoreFormatter: (s, _) => '\$s moves',
+      scoreFormatter: (s, _) => '$s moves',
       configOptions: [
         SliderConfigOption(
           key: 'gridSize',
           label: 'Grid Size',
           defaultValue: 4.0,
           min: 4.0,
-          max: 6.0,
-          divisions: 1,
+          max: 10.0,
+          divisions: 3,
         ),
         DropdownConfigOption<String>(
           key: 'difficulty',

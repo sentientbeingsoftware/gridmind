@@ -122,15 +122,16 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
         ? colors
         : [Colors.indigo, Colors.blue, Colors.teal, Colors.purple];
 
-    final Q = widget.gridSize ~/ 2;
-
-    // Generate base/target pattern: each quadrant is a solid color
-    final target = List.generate(widget.gridSize, (r) {
-      return List.generate(widget.gridSize, (c) {
-        final quadrant = (r ~/ Q) * 2 + (c ~/ Q);
-        return palette[quadrant % palette.length];
+    // Generate a varied multi-colour target pattern so quadrant rotations
+    // always change the board (solid-colour quadrants were invariant under rotation).
+    List<List<Color>> target;
+    do {
+      target = List.generate(widget.gridSize, (r) {
+        return List.generate(widget.gridSize, (c) {
+          return palette[_rand.nextInt(palette.length)];
+        });
       });
-    });
+    } while (_hasRotationallySymmetricQuadrant(target));
 
     // Active grid starts as a copy of the target pattern
     var active = List.generate(widget.gridSize, (r) {
@@ -152,22 +153,31 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
         break;
     }
 
-    // Run scramble
-    int stepsApplied = 0;
-    int lastQuad = -1;
-    while (stepsApplied < scrambleSteps) {
-      final quad = _rand.nextInt(4);
-      // Avoid immediately reversing the same quadrant
-      if (quad == lastQuad) continue;
-      final clockwise = _rand.nextBool();
-      active = _performScrambleRotate(active, quad, clockwise);
-      lastQuad = quad;
-      stepsApplied++;
+    for (int attempt = 0; attempt < 20; attempt++) {
+      var candidate = List.generate(
+        widget.gridSize,
+        (r) => List<Color>.from(target[r]),
+      );
+      int stepsApplied = 0;
+      int lastQuad = -1;
+      bool lastCw = false;
+      while (stepsApplied < scrambleSteps) {
+        final quad = _rand.nextInt(4);
+        final clockwise = _rand.nextBool();
+        if (quad == lastQuad && clockwise != lastCw) continue;
+        candidate = _performScrambleRotate(candidate, quad, clockwise);
+        lastQuad = quad;
+        lastCw = clockwise;
+        stepsApplied++;
+      }
+      active = candidate;
+      if (!_areGridsEqual(active, target) && !_isOneMoveFromTarget(active, target)) {
+        break;
+      }
     }
-
-    // In case the scrambled board matches the target by pure luck, scramble a bit more
-    if (_areGridsEqual(active, target)) {
-      active = _performScrambleRotate(active, 0, true);
+    if (_areGridsEqual(active, target) || _isOneMoveFromTarget(active, target)) {
+      active = _performScrambleRotate(target, 0, true);
+      active = _performScrambleRotate(active, 3, true);
     }
 
     final stored = await loadBestScore();
@@ -189,6 +199,25 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
         bestScore = stored;
       });
     }
+  }
+
+  bool _hasRotationallySymmetricQuadrant(List<List<Color>> grid) {
+    for (int q = 0; q < 4; q++) {
+      final rotated = _performScrambleRotate(grid, q, true);
+      if (_areGridsEqual(grid, rotated)) return true;
+    }
+    return false;
+  }
+
+  bool _isOneMoveFromTarget(List<List<Color>> grid, List<List<Color>> target) {
+    for (int q = 0; q < 4; q++) {
+      for (final cw in [true, false]) {
+        if (_areGridsEqual(_performScrambleRotate(grid, q, cw), target)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   List<List<Color>> _performScrambleRotate(List<List<Color>> currentGrid, int quadrantIndex, bool clockwise) {
@@ -506,7 +535,7 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          _buildGridDisplay(_targetPattern, tileSize: 16.0),
+          _buildGridDisplay(_targetPattern, tileSize: (110.0 / widget.gridSize).clamp(9.0, 16.0)),
         ],
       ),
       child: Center(
@@ -514,7 +543,7 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildMainGrid(48.0),
+              _buildMainGrid((260.0 / widget.gridSize).clamp(24.0, 48.0)),
               const SizedBox(height: 20),
               Text(
                 _getQuadrantLabel(_selectedQuadrant),

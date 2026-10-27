@@ -116,5 +116,31 @@ void main() {
       // Should show game over overlay.
       expect(find.text('Move limit exceeded! Try again.'), findsOneWidget);
     });
+
+    testWidgets('generated puzzle does not win on first move across sizes 4-10', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      for (final size in [4, 6, 8, 10]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GravityShiftGameScreen(
+              key: ValueKey('gs_$size'),
+              gridSize: size,
+              difficulty: 'medium',
+              moveMode: 'challenge',
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.arrow_upward));
+        await tester.pumpAndSettle();
+        expect(find.text('Puzzle solved!'), findsNothing, reason: 'size $size won on 1st move');
+      }
+    });
   });
 }
