@@ -1097,7 +1097,8 @@ class GameRegistry {
     GameMetadata(
       id: 'territory',
       title: 'Territory',
-      description: 'Enclose and control grid areas.',
+      description:
+          'Expand your territory to adjacent weighted cells and reach the target value within the move limit.',
       icon: Icons.layers,
       category: 'Score-Attack Games',
       lowerIsBetter: true,
@@ -1113,11 +1114,11 @@ class GameRegistry {
         ),
         SliderConfigOption(
           key: 'targetArea',
-          label: 'Target Area',
-          defaultValue: 8.0,
-          min: 4.0,
-          max: 15.0,
-          divisions: 11,
+          label: 'Target Value',
+          defaultValue: 12.0,
+          min: 6.0,
+          max: 30.0,
+          divisions: 12,
         ),
         DropdownConfigOption<String>(
           key: 'moveMode',
@@ -1136,14 +1137,12 @@ class GameRegistry {
             : int.tryParse(config['gridSize']?.toString() ?? '') ?? 4;
         final targetArea = (config['targetArea'] is num)
             ? (config['targetArea'] as num).round()
-            : int.tryParse(config['targetArea']?.toString() ?? '') ?? 8;
+            : int.tryParse(config['targetArea']?.toString() ?? '') ?? 12;
         final moveMode = config['moveMode']?.toString() ?? 'challenge';
-        final maxMoves = moveMode == 'challenge' ? targetArea + 2 : null;
         return TerritoryGameScreen(
           gridSize: size,
           targetArea: targetArea,
           moveMode: moveMode,
-          maxMoves: maxMoves,
         );
       },
     ),

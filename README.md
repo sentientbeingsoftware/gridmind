@@ -102,8 +102,8 @@ An alignment transformation puzzle.
 - **Configurable conditions**: Sliders and dropdowns adjusting difficulty levels and play modes.
 
 ### 🗺️ Territory
-- **Area Enclosure**: Capture and secure target territory percentages on a grid grid by claim taps.
-- **Move Limitations**: Try to secure control before running out of turns.
+- **Adjacent Expansion**: Expand your territory across adjacent weighted cells (1–3) to reach the target value.
+- **Move Limitations**: Plan high-value routes to reach the target before running out of turns.
 
 ---
 

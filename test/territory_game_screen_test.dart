@@ -8,7 +8,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('TerritoryGameScreen Widget Tests', () {
-    testWidgets('renders Territory game screen and claims cells in Zen mode', (WidgetTester tester) async {
+    testWidgets('claims only cells adjacent to territory and ignores non-adjacent or re-taps', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -18,60 +18,61 @@ void main() {
         const MaterialApp(
           home: TerritoryGameScreen(
             gridSize: 3,
-            targetArea: 4,
+            targetArea: 10,
             moveMode: 'zen',
             testMode: true,
+            testValues: [1, 2, 3, 1, 2, 3, 1, 2, 3],
           ),
         ),
       );
 
-      // Verify initial UI elements
-      expect(find.text('Score'), findsOneWidget);
+      expect(find.text('Captured 0/10'), findsOneWidget);
+      final cells = find.byType(GestureDetector);
+
+      // Cell 8 (bottom-right) is not adjacent to cell 0 -> ignored
+      await tester.tap(cells.at(8));
+      await tester.pump();
       expect(find.text('0'), findsOneWidget);
-      expect(find.text('Claimed 0/4'), findsOneWidget);
+      expect(find.text('Captured 0/10'), findsOneWidget);
 
-      // Find cells in GridView. Standard GestureDetector container margin and decoration.
-      // Grid has 3x3 = 9 cells. Let's tap the first cell.
-      await tester.tap(find.byType(GestureDetector).first);
+      // Cell 1 (top-middle, value 2) is adjacent to cell 0 -> claimed
+      await tester.tap(cells.at(1));
       await tester.pump();
+      expect(find.text('Captured 2/10'), findsOneWidget);
 
-      // Verify state updates
-      expect(find.text('Score'), findsOneWidget);
-      expect(find.text('1'), findsOneWidget);
-      expect(find.text('Claimed 1/4'), findsOneWidget);
-
-      // Re-tapping a claimed cell claims nothing new but still costs a move.
-      await tester.tap(find.byType(GestureDetector).first);
+      // Re-tapping cell 1 is ignored
+      await tester.tap(cells.at(1));
       await tester.pump();
-      expect(find.text('2'), findsOneWidget);
-      expect(find.text('Claimed 1/4'), findsOneWidget);
+      expect(find.text('Captured 2/10'), findsOneWidget);
     });
 
-    testWidgets('winning in Zen mode shows victory message', (WidgetTester tester) async {
+    testWidgets('winning in Zen mode shows victory message and clamps oversized target', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
+      // All values 1; max achievable on 3x3 (8 claimable cells) is 8.
       await tester.pumpWidget(
         const MaterialApp(
           home: TerritoryGameScreen(
             gridSize: 3,
-            targetArea: 2,
+            targetArea: 15,
             moveMode: 'zen',
             testMode: true,
+            testValues: [1, 1, 1, 1, 1, 1, 1, 1, 1],
           ),
         ),
       );
 
-      // Tap 2 unique cells to win
-      final finders = find.byType(GestureDetector);
-      await tester.tap(finders.at(0));
-      await tester.pump();
-      await tester.tap(finders.at(1));
-      await tester.pump();
+      expect(find.text('Captured 0/8'), findsOneWidget);
 
-      // Verify victory message
+      final cells = find.byType(GestureDetector);
+      for (final idx in [1, 2, 5, 4, 3, 6, 7, 8]) {
+        await tester.tap(cells.at(idx));
+        await tester.pump();
+      }
+
       expect(find.text('Victory! Territory captured.'), findsOneWidget);
     });
 
@@ -85,41 +86,21 @@ void main() {
         const MaterialApp(
           home: TerritoryGameScreen(
             gridSize: 3,
-            targetArea: 3,
+            targetArea: 6,
             moveMode: 'challenge',
             maxMoves: 2,
             testMode: true,
+            testValues: [1, 1, 1, 1, 1, 1, 1, 1, 1],
           ),
         ),
       );
 
-      final finders = find.byType(GestureDetector);
-      // Make 2 moves
-      await tester.tap(finders.at(0));
-      await tester.pump();
-      await tester.tap(finders.at(1));
-      await tester.pump();
-
-      // We had a limit of 2 moves but targetArea of 3. We didn't reach target area.
-      // So game over should trigger
-      expect(find.text('Game Over - No more moves.'), findsOneWidget);
-    });
-
-    testWidgets('wasted re-taps can lose challenge mode', (tester) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(const MaterialApp(
-        home: TerritoryGameScreen(
-            gridSize: 3, targetArea: 3, moveMode: 'challenge', maxMoves: 5, testMode: true),
-      ));
       final cells = find.byType(GestureDetector);
-      for (var i = 0; i < 5; i++) {
-        await tester.tap(cells.at(0)); // same cell, never reaches 3 claimed
-        await tester.pump();
-      }
+      await tester.tap(cells.at(1));
+      await tester.pump();
+      await tester.tap(cells.at(2));
+      await tester.pump();
+
       expect(find.text('Game Over - No more moves.'), findsOneWidget);
     });
 
@@ -128,11 +109,19 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final cfg = {'gridSize': 3.0, 'targetArea': 2.0, 'moveMode': 'zen'};
+      final cfg = {'gridSize': 3.0, 'targetArea': 3.0, 'moveMode': 'zen'};
+      // Cell 1 = 3 pts (1-move win), cells 3 & 6 = 2 + 1 pts (2-move win).
+      const board = [1, 3, 1, 2, 1, 1, 1, 1, 1];
 
       Future<void> play(List<int> taps) async {
         await tester.pumpWidget(const MaterialApp(
-          home: TerritoryGameScreen(gridSize: 3, targetArea: 2, moveMode: 'zen', testMode: true),
+          home: TerritoryGameScreen(
+            gridSize: 3,
+            targetArea: 3,
+            moveMode: 'zen',
+            testMode: true,
+            testValues: board,
+          ),
         ));
         await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 50)));
         await tester.pump();
@@ -145,13 +134,13 @@ void main() {
         await tester.pumpWidget(const SizedBox());
       }
 
-      await play([0, 0, 0, 1]); // 4 moves
+      await play([3, 6]); // 2 moves
       final svc = AppPersistenceService();
-      expect(await tester.runAsync(() => svc.getConfigHighScore('territory', cfg)), 4);
-      await play([0, 1]); // 2 moves: better
       expect(await tester.runAsync(() => svc.getConfigHighScore('territory', cfg)), 2);
-      await play([0, 0, 1]); // 3 moves: worse, ignored
-      expect(await tester.runAsync(() => svc.getConfigHighScore('territory', cfg)), 2);
+      await play([1]); // 1 move: better
+      expect(await tester.runAsync(() => svc.getConfigHighScore('territory', cfg)), 1);
+      await play([3, 6]); // 2 moves: worse, ignored
+      expect(await tester.runAsync(() => svc.getConfigHighScore('territory', cfg)), 1);
     });
   });
 }
