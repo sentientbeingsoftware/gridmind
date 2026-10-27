@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # - Android: build-name = versionName, build-number = versionCode
 # - iOS: build-name = CFBundleShortVersionString, build-number = CFBundleVersion
 # - Windows: build-name = product/file version parts, build-number = build suffix
-version: 1.0.0+5
+version: 1.0.0+6
 
 # Dart SDK version requirement
 # Ensures compatibility with Flutter framework features
