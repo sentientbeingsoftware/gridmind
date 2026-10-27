@@ -77,7 +77,13 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
   }
 
   int _getCapacity(int r, int c) {
-    return 4;
+    if (widget.gridSize <= 1) return 4;
+    int neighbors = 0;
+    if (r > 0) neighbors++;
+    if (r < widget.gridSize - 1) neighbors++;
+    if (c > 0) neighbors++;
+    if (c < widget.gridSize - 1) neighbors++;
+    return neighbors;
   }
 
   bool _isBoardEmpty() {
@@ -96,14 +102,14 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
     } else {
       switch (widget.difficulty) {
         case 'easy':
-          _tapLimit = widget.gridSize + 4;
+          _tapLimit = widget.gridSize * 2 + 4;
           break;
         case 'hard':
-          _tapLimit = max(3, widget.gridSize - 2);
+          _tapLimit = widget.gridSize + 2;
           break;
         case 'medium':
         default:
-          _tapLimit = widget.gridSize;
+          _tapLimit = (widget.gridSize * 1.5).round() + 2;
           break;
       }
     }
@@ -221,6 +227,7 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
         break;
       }
 
+      if (!mounted) return;
       setState(() {
         // Build new state grid
         final newGrid = List.generate(
@@ -230,21 +237,29 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
 
         for (final cell in explodingCells) {
           final capacity = _getCapacity(cell.x, cell.y);
-          newGrid[cell.x][cell.y] -= capacity;
+          newGrid[cell.x][cell.y] = max(0, newGrid[cell.x][cell.y] - capacity);
 
-          // Distribute in all 4 orthogonal directions
-          final dirs = [
-            Point(cell.x - 1, cell.y),
-            Point(cell.x + 1, cell.y),
-            Point(cell.x, cell.y - 1),
-            Point(cell.x, cell.y + 1),
+          // Flying dots: each dot travels in its orthogonal direction across
+          // empty cells until it hits an occupied cell (or leaves the board).
+          const deltas = [
+            Point(-1, 0),
+            Point(1, 0),
+            Point(0, -1),
+            Point(0, 1),
           ];
-          for (final d in dirs) {
-            if (d.x >= 0 &&
-                d.x < widget.gridSize &&
-                d.y >= 0 &&
-                d.y < widget.gridSize) {
-              newGrid[d.x][d.y]++;
+          for (final d in deltas) {
+            int nr = cell.x + d.x;
+            int nc = cell.y + d.y;
+            while (nr >= 0 &&
+                nr < widget.gridSize &&
+                nc >= 0 &&
+                nc < widget.gridSize) {
+              if (_grid[nr][nc] > 0) {
+                newGrid[nr][nc]++;
+                break;
+              }
+              nr += d.x;
+              nc += d.y;
             }
           }
         }
@@ -263,7 +278,10 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
       }
 
       // Briefly pause to animate the cascade tick
-      await Future.delayed(const Duration(milliseconds: 200));
+      if (!widget.testMode) {
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+      if (!mounted) return;
     }
 
     if (!mounted) return;
@@ -314,7 +332,7 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
                   '   - Corners: 2 atoms\n'
                   '   - Edges: 3 atoms\n'
                   '   - Center: 4 atoms\n'
-                  '3. When a cell reaches its critical mass, it explodes, distributing 1 atom to each orthogonal neighbor and becoming empty.\n'
+                  '3. When a cell reaches its critical mass, it explodes, firing 1 atom in each orthogonal direction across empty cells until it hits an occupied cell.\n'
                   '4. Distributed atoms can trigger adjacent cells to also explode, starting a Chain Reaction!\n'
                   '5. Atoms traveling off the edge of the grid are destroyed. Use this to clear the board.\n'
                   '6. In Challenge Mode, clear the board before running out of taps.',
