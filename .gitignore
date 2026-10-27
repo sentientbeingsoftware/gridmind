@@ -52,3 +52,6 @@ key.properties
 
 # Local build-time secrets (flutter --dart-define-from-file)
 dart_defines.json
+
+# Windows download markers (created when files are saved from the browser)
+*:Zone.Identifier
