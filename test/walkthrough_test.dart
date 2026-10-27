@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gridmind/models/game_metadata.dart';
 import 'package:gridmind/screens/base_setup_screen.dart';
+import 'package:gridmind/screens/walkthrough_dialog.dart';
 import 'package:gridmind/services/app_persistence_service.dart';
 
 GameMetadata _game() => GameMetadata(
@@ -31,11 +32,11 @@ void main() {
     expect(await s.hasSeenWalkthrough('b'), false);
   });
 
-  test('default steps fall back to description', () {
+  test('default steps fall back to single description page', () {
     final g = GameMetadata(
         id: 'x', title: 't', description: 'D', icon: Icons.star,
         category: 'c', configOptions: [], gameBuilder: (c, cfg) => const SizedBox());
-    expect(g.walkthroughSteps.first, 'D');
+    expect(g.walkthroughSteps, ['D']);
   });
 
   testWidgets('shows on first launch once, can be reset and re-shown', (t) async {
@@ -68,5 +69,22 @@ void main() {
     await t.tap(find.byKey(const Key('walkthrough_reset')));
     await t.pumpAndSettle();
     expect(await AppPersistenceService().hasSeenWalkthrough('wt_game'), false);
+  });
+
+  testWidgets('app intro shows once on first launch and can be reopened from Settings', (t) async {
+    SharedPreferences.setMockInitialValues({'telemetry_consent_answered': true});
+    await t.pumpWidget(MaterialApp(
+      home: Builder(
+        builder: (ctx) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => maybeShowAppIntro(ctx));
+          return const Scaffold(body: Text('Home'));
+        },
+      ),
+    ));
+    await t.pumpAndSettle();
+    expect(find.text('Welcome to GridMind'), findsOneWidget);
+    await t.tap(find.byKey(const Key('walkthrough_skip')));
+    await t.pumpAndSettle();
+    expect(await AppPersistenceService().hasSeenWalkthrough(kAppIntroWalkthroughId), true);
   });
 }

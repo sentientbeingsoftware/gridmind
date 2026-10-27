@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/game_metadata.dart';
 import '../services/game_registry.dart';
 import '../theme/theme_controller.dart';
+import 'walkthrough_dialog.dart';
 import 'feedback_screen.dart';
 import '../services/app_persistence_service.dart';
 import '../services/telemetry_service.dart';
@@ -520,6 +521,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 subtitle: const Text('Read how GridMind handles your data'),
                 trailing: const Icon(Icons.open_in_new, size: 18),
                 onTap: _launchPrivacyPolicy,
+              ),
+              ListTile(
+                key: const Key('settings_reopen_intro'),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                leading: const Icon(Icons.help_outline),
+                title: const Text('App Walkthrough'),
+                subtitle: const Text('Reopen the GridMind introduction'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => showAppIntroDialog(context),
               ),
             ],
           ),

@@ -5,8 +5,11 @@ import 'package:gridmind/theme/theme_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  // Consent already answered so the first-run dialog doesn't cover the UI.
-  setUp(() => SharedPreferences.setMockInitialValues({'telemetry_consent_answered': true}));
+  // Consent and intro already seen so first-run dialogs don't cover the UI.
+  setUp(() => SharedPreferences.setMockInitialValues({
+        'telemetry_consent_answered': true,
+        'walkthrough_seen__app_intro': true,
+      }));
 
   test('ThemeController updates value and persists the mode', () async {
     final controller = ThemeController();

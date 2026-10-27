@@ -6,6 +6,7 @@ import 'base_setup_screen.dart';
 import '../services/app_persistence_service.dart';
 import 'settings_screen.dart';
 import 'telemetry_consent_dialog.dart';
+import 'walkthrough_dialog.dart';
 
 /// Main menu screen that provides navigation to all available games
 /// Displays buttons for each game type and settings
@@ -24,8 +25,11 @@ class _MenuScreenState extends State<MenuScreen> {
   void initState() {
     super.initState();
     _loadFavorites();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) showTelemetryConsentIfNeeded(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await showTelemetryConsentIfNeeded(context);
+      if (!mounted) return;
+      await maybeShowAppIntro(context);
     });
   }
 

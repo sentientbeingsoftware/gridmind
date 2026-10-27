@@ -2,6 +2,49 @@ import 'package:flutter/material.dart';
 import '../models/game_metadata.dart';
 import '../services/app_persistence_service.dart';
 
+const String kAppIntroWalkthroughId = '_app_intro';
+
+const List<String> kAppIntroSteps = [
+  'Pick your board rules on any game setup screen, then tap Start Game.',
+  'Your best score is saved per rule set - try beating it!',
+];
+
+/// Shows the app-wide intro walkthrough once at first launch, or on demand
+/// from Settings.
+Future<void> showAppIntroDialog(
+  BuildContext context, {
+  AppPersistenceService? persistence,
+}) async {
+  final svc = persistence ?? AppPersistenceService();
+  final introGame = GameMetadata(
+    id: kAppIntroWalkthroughId,
+    title: 'Welcome to GridMind',
+    description: kAppIntroSteps.first,
+    icon: Icons.grid_view_rounded,
+    category: '',
+    configOptions: const [],
+    gameBuilder: (ctx, cfg) => const SizedBox.shrink(),
+    walkthrough: kAppIntroSteps,
+  );
+  await showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => _WalkthroughDialog(
+      game: introGame,
+      headerTitle: 'Welcome to GridMind',
+    ),
+  );
+  await svc.setWalkthroughSeen(kAppIntroWalkthroughId);
+}
+
+/// Shows the app-wide intro walkthrough only if it has not been seen yet.
+Future<void> maybeShowAppIntro(BuildContext context) async {
+  final svc = AppPersistenceService();
+  if (await svc.hasSeenWalkthrough(kAppIntroWalkthroughId)) return;
+  if (!context.mounted) return;
+  await showAppIntroDialog(context, persistence: svc);
+}
+
 /// Paged "How to play" walkthrough. Marks the game's walkthrough as seen
 /// when closed (finished or skipped).
 Future<void> showWalkthroughDialog(
@@ -28,7 +71,8 @@ Future<void> maybeShowWalkthrough(BuildContext context, GameMetadata game) async
 
 class _WalkthroughDialog extends StatefulWidget {
   final GameMetadata game;
-  const _WalkthroughDialog({required this.game});
+  final String? headerTitle;
+  const _WalkthroughDialog({required this.game, this.headerTitle});
 
   @override
   State<_WalkthroughDialog> createState() => _WalkthroughDialogState();
@@ -46,7 +90,7 @@ class _WalkthroughDialogState extends State<_WalkthroughDialog> {
       title: Row(children: [
         Icon(widget.game.icon),
         const SizedBox(width: 12),
-        Expanded(child: Text('How to play: ${widget.game.title}')),
+        Expanded(child: Text(widget.headerTitle ?? 'How to play: ${widget.game.title}')),
       ]),
       content: Column(
         mainAxisSize: MainAxisSize.min,

@@ -137,16 +137,11 @@ class GameMetadata {
   final String Function(int score, Map<String, dynamic> config)? scoreFormatter;
 
   /// Optional step-by-step walkthrough. When empty, [walkthroughSteps] falls
-  /// back to the description plus generic tips.
+  /// back to a single page containing [description].
   final List<String> walkthrough;
 
-  List<String> get walkthroughSteps => walkthrough.isNotEmpty
-      ? walkthrough
-      : [
-          description,
-          'Pick your board rules on the setup screen, then tap Start Game.',
-          'Your best score is saved per rule set - try beating it!',
-        ];
+  List<String> get walkthroughSteps =>
+      walkthrough.isNotEmpty ? walkthrough : [description];
 
   /// Saved setup values merged over defaults, decoded to their real types.
   /// This is the exact config used for score keys, so setup, game and
