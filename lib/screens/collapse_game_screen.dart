@@ -189,7 +189,7 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
     if (!_areAnyMovesPossible()) {
       if (!isAfterShuffle && _shuffleCount < _maxShuffles) {
         // Show shuffle notification to the player
-        if (mounted) {
+        if (mounted && !widget.testMode) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -491,6 +491,19 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
     return false; // No possible moves found after checking all potential swaps
   }
 
+  /// True when the 2x2 block whose top-left cell is (r, c) is one colour.
+  bool _isSquareAt(int r, int c) {
+    if (r < 0 || c < 0 || r + 1 >= _gridSize || c + 1 >= _gridSize) {
+      return false;
+    }
+    final b = _grid[r][c];
+    if (b == null || b.isEmpty) return false;
+    for (final cell in [_grid[r][c + 1], _grid[r + 1][c], _grid[r + 1][c + 1]]) {
+      if (cell == null || cell.isEmpty || cell.color != b.color) return false;
+    }
+    return true;
+  }
+
   // Helper to check if a point is part of any potential match after a swap
   bool _formsMatchAround(Point<int> pos) {
     // Temporarily check horizontal and vertical matches involving this specific block
@@ -498,6 +511,13 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
       return false;
     }
     Color color = _grid[pos.x][pos.y]!.color;
+
+    // Any 2x2 square containing this block counts
+    for (final dr in [-1, 0]) {
+      for (final dc in [-1, 0]) {
+        if (_isSquareAt(pos.x + dr, pos.y + dc)) return true;
+      }
+    }
 
     // Check horizontal
     int count = 1;
@@ -584,7 +604,7 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
         }
         needsUIUpdate = true;
 
-        if (!isInitialSetup) {
+        if (!isInitialSetup && !widget.testMode) {
           await Future.delayed(
             const Duration(milliseconds: 60),
           ); // Visual delay
@@ -593,7 +613,7 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
         _clearMarkedBlocks();
         needsUIUpdate = true;
 
-        if (!isInitialSetup) {
+        if (!isInitialSetup && !widget.testMode) {
           await Future.delayed(
             const Duration(milliseconds: 60),
           ); // Visual delay
@@ -602,7 +622,7 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
         _applyCollapse();
         needsUIUpdate = true;
 
-        if (!isInitialSetup) {
+        if (!isInitialSetup && !widget.testMode) {
           await Future.delayed(
             const Duration(milliseconds: 60),
           ); // Visual delay
@@ -696,6 +716,19 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
           r +=
               currentVerticalMatch.length -
               1; // Skip already checked blocks in this column
+        }
+      }
+    }
+    // 2x2 squares always count, whatever the Min Match setting is.
+    for (int r = 0; r < _gridSize - 1; r++) {
+      for (int c = 0; c < _gridSize - 1; c++) {
+        if (_isSquareAt(r, c)) {
+          matchedPositions.addAll([
+            Point(r, c),
+            Point(r, c + 1),
+            Point(r + 1, c),
+            Point(r + 1, c + 1),
+          ]);
         }
       }
     }
