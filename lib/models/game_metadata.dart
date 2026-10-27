@@ -102,15 +102,23 @@ class DropdownConfigOption<T> extends ConfigOption<T> {
 
   @override
   Widget buildControl(BuildContext context, T currentValue, ValueChanged<T> onChanged) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-      trailing: DropdownButton<T>(
-        value: currentValue,
-        items: items,
-        onChanged: (val) {
-          if (val != null) onChanged(val);
-        },
+    // Label above a full-width dropdown so long labels never get squeezed
+    // into a one-character column.
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          DropdownButton<T>(
+            isExpanded: true,
+            value: currentValue,
+            items: items,
+            onChanged: (val) {
+              if (val != null) onChanged(val);
+            },
+          ),
+        ],
       ),
     );
   }
