@@ -22,12 +22,12 @@ void main() {
       of: find.byType(Listener),
       matching: find.byType(GestureDetector),
     );
-    final RenderBox rBox = tester.renderObject(gridFinder.first);
-    final gridPosition = rBox.localToGlobal(Offset.zero);
-    final size = rBox.size;
-    final cellWidth = size.width / gridSize;
-    final cellHeight = size.height / gridSize;
-    final tapPos = gridPosition + Offset(cellWidth * (c + 0.5), cellHeight * (r + 0.5));
+    // getRect applies ancestor transforms, so this stays correct when the
+    // shell scales the board down to fit a short window.
+    final rect = tester.getRect(gridFinder.first);
+    final cellWidth = rect.width / gridSize;
+    final cellHeight = rect.height / gridSize;
+    final tapPos = rect.topLeft + Offset(cellWidth * (c + 0.5), cellHeight * (r + 0.5));
     await tester.tapAt(tapPos);
     await tester.pumpAndSettle();
   }

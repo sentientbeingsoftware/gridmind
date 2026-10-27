@@ -206,6 +206,12 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
         widget.highScoreValue != null && widget.highScoreValue!.isNotEmpty;
     final hasCurrentScore = widget.currentScoreValue != null &&
         widget.currentScoreValue!.isNotEmpty;
+    // Short screens (compact phones, small desktop windows) get tighter chrome
+    // so the board keeps as much room as possible.
+    final compact = MediaQuery.sizeOf(context).height < _kCompactHeight;
+    final gap = compact ? 6.0 : 12.0;
+    final buttonPadding =
+        EdgeInsets.symmetric(horizontal: 20, vertical: compact ? 8 : 12);
 
     return PopScope(
       canPop: false,
@@ -249,9 +255,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
             children: [
               // Unified premium HUD Container
               Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
+                margin: EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: compact ? 4.0 : 8.0),
+                padding: EdgeInsets.all(compact ? 8.0 : 12.0),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surfaceContainerHighest
                       .withValues(alpha: 0.3),
@@ -273,6 +279,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                             widget.highScoreValue!,
                             Colors.amber.shade700,
                             Icons.emoji_events,
+                            compact: compact,
                           ),
                         if (hasCurrentScore)
                           _buildHudStatCard(
@@ -281,13 +288,14 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                             widget.currentScoreValue!,
                             theme.colorScheme.secondary,
                             Icons.play_circle_outline,
+                            compact: compact,
                           ),
                       ],
                     ),
                     if (widget.statusText != null &&
                         !widget.isGameWon &&
                         !widget.isGameOver) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: compact ? 4 : 8),
                       Semantics(
                         liveRegion: true,
                         child: Text(
@@ -376,22 +384,23 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                   ),
                 ),
 
-              // Slide and Solve target grids or other top features
-              if (widget.topHudExtra != null) ...[
-                const SizedBox(height: 8),
-                widget.topHudExtra!,
-              ],
+              // Game area: optional top extra (e.g. the target pattern in Slide
+              // and Solve) plus the board. It is scaled down to fit when the
+              // screen is short, instead of overflowing.
+              Expanded(
+                child: _FitToHeight(
+                  topExtra: widget.topHudExtra,
+                  gap: gap,
+                  child: widget.child,
+                ),
+              ),
 
-              const SizedBox(height: 12),
-
-              // Game board itself
-              Expanded(child: widget.child),
-
-              const SizedBox(height: 12),
+              SizedBox(height: gap),
 
               // Action buttons row (Undo, Reset, Exit)
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.fromLTRB(
+                    16, compact ? 4 : 16, 16, compact ? 8 : 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -402,10 +411,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                         onPressed: (widget.isGameWon || widget.isGameOver)
                             ? null
                             : widget.onUndo,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                        ),
+                        style: ElevatedButton.styleFrom(padding: buttonPadding),
                       ),
                     if (widget.onReset != null)
                       ElevatedButton.icon(
@@ -418,18 +424,14 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                           _loggedEndEvent = false;
                           if (widget.onReset != null) widget.onReset!();
                         },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                        ),
+                        style: ElevatedButton.styleFrom(padding: buttonPadding),
                       ),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.exit_to_app),
                       label: const Text('Exit'),
                       onPressed: () => _handleExit(context),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
+                        padding: buttonPadding,
                         backgroundColor: theme.colorScheme.surface,
                         foregroundColor: theme.colorScheme.onSurface,
                       ),
@@ -449,8 +451,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     String label,
     String value,
     Color accentColor,
-    IconData icon,
-  ) {
+    IconData icon, {
+    bool compact = false,
+  }) {
     final theme = Theme.of(context);
     return Semantics(
       container: true,
@@ -466,7 +469,8 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+          padding: EdgeInsets.symmetric(
+              horizontal: 16.0, vertical: compact ? 6.0 : 10.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -496,6 +500,74 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Screens shorter than this (in logical pixels) use tighter spacing.
+const double _kCompactHeight = 740;
+
+/// Height the game area is laid out at when the real area is shorter. Boards
+/// and their controls are designed for at least this much room.
+const double _kDesignHeight = 480;
+
+/// Below this scale the content would be too small to use, so it scrolls
+/// vertically instead of shrinking further.
+const double _kMinScale = 0.55;
+
+/// Lays out [topExtra] and [child] as if the area were at least
+/// [_kDesignHeight] tall, then scales the result down to the real height.
+///
+/// When the area is at least [_kDesignHeight] tall nothing is scaled. [child]
+/// always gets bounded constraints, so games that use `Expanded` or
+/// `LayoutBuilder` keep working.
+class _FitToHeight extends StatelessWidget {
+  const _FitToHeight({
+    required this.topExtra,
+    required this.gap,
+    required this.child,
+  });
+
+  final Widget? topExtra;
+  final double gap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = constraints.maxHeight;
+
+        Widget content(double h) => SizedBox(
+              width: width,
+              height: h,
+              child: Column(
+                children: [
+                  if (topExtra != null) ...[
+                    SizedBox(height: gap * 2 / 3),
+                    topExtra!,
+                  ],
+                  SizedBox(height: gap),
+                  Expanded(child: child),
+                ],
+              ),
+            );
+
+        if (height >= _kDesignHeight) return content(height);
+
+        if (height / _kDesignHeight >= _kMinScale) {
+          return FittedBox(child: content(_kDesignHeight));
+        }
+        // Extremely short area: keep a readable size and let it scroll.
+        return SingleChildScrollView(
+          child: SizedBox(
+            width: width,
+            height: _kDesignHeight * _kMinScale,
+            child: FittedBox(child: content(_kDesignHeight)),
+          ),
+        );
+      },
     );
   }
 }
