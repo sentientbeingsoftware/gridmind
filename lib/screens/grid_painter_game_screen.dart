@@ -536,7 +536,10 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                                   width: 300.0 / widget.gridSize,
                                   alignment: Alignment.bottomCenter,
                                   padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: Column(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: _colClues[c].map((v) {
                                       return Text(
@@ -548,6 +551,7 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                                         ),
                                       );
                                     }).toList(),
+                                  ),
                                   ),
                                 );
                               }),
@@ -567,7 +571,10 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                                   height: 300.0 / widget.gridSize,
                                   alignment: Alignment.centerRight,
                                   padding: const EdgeInsets.only(right: 8.0),
-                                  child: Row(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: _rowClues[r].map((v) {
                                       return Padding(
@@ -582,6 +589,7 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                                         ),
                                       );
                                     }).toList(),
+                                  ),
                                   ),
                                 );
                               }),

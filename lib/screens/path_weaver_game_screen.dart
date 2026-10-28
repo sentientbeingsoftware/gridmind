@@ -424,7 +424,10 @@ class _PathWeaverGameScreenState extends State<PathWeaverGameScreen> with Config
                   Builder(
                     builder: (gridContext) {
                       return GestureDetector(
-                        onPanStart: (details) {
+                        // onPanDown, not onPanStart: PanStart reports the point after
+                        // the touch slop, which on a small scaled cell can already be
+                        // the next cell, so the drag would never begin on the start.
+                        onPanDown: (details) {
                           final RenderBox? rBox = gridContext.findRenderObject() as RenderBox?;
                           if (rBox == null) return;
                           final local = rBox.globalToLocal(details.globalPosition);
