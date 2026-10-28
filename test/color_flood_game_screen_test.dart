@@ -4,6 +4,20 @@ import 'package:gridmind/screens/color_flood_game_screen.dart';
 
 void main() {
   group('ColorFloodGameScreen Widget Tests', () {
+    testWidgets('14 colours on a 360x640 phone do not overflow', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(const MaterialApp(
+        home: ColorFloodGameScreen(gridSize: 8, colorCount: 14, moveMode: 'zen'),
+      ));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('renders Color Flood screen', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
