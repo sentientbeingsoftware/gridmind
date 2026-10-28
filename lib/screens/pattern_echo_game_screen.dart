@@ -431,7 +431,7 @@ class _PatternEchoGameScreenState extends State<PatternEchoGameScreen> with Conf
                             final tileColor = _getTileColor(r, c, offColor, themeColor);
                             final isTargetInShow = _showingPattern && _targetPattern.contains(Point(r, c));
 
-                            return GestureDetector(
+                            return Semantics(label: 'Row ${r + 1}, column ${c + 1}${isTargetInShow ? ", part of the pattern" : ""}${_selectedCells.contains(Point(r, c)) ? ", chosen" : ""}', button: true, child: GestureDetector(
                               onTap: () => _handleCellTap(r, c),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
@@ -464,7 +464,7 @@ class _PatternEchoGameScreenState extends State<PatternEchoGameScreen> with Conf
                                           : []),
                                 ),
                               ),
-                            );
+                            ));
                           },
                         ),
                       ),

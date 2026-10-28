@@ -1,4 +1,6 @@
 // lib/slide_and_solve_game_screen.dart
+import 'package:flutter/semantics.dart';
+import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../services/app_persistence_service.dart';
@@ -420,7 +422,15 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: List.generate(widget.gridSize, (colIndex) {
-              return GestureDetector(
+              return Semantics(
+                label: 'Row ${rowIndex + 1}, column ${colIndex + 1}, ${colorName(currentGrid![rowIndex][colIndex])}',
+                customSemanticsActions: {
+                  const CustomSemanticsAction(label: 'Slide row left'): () => _slideRow(rowIndex, false),
+                  const CustomSemanticsAction(label: 'Slide row right'): () => _slideRow(rowIndex, true),
+                  const CustomSemanticsAction(label: 'Slide column up'): () => _slideColumn(colIndex, false),
+                  const CustomSemanticsAction(label: 'Slide column down'): () => _slideColumn(colIndex, true),
+                },
+                child: GestureDetector(
                 onHorizontalDragStart: (details) {
                   if (isSolved) return;
                   _dragStartDetails = details;
@@ -461,6 +471,7 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
                   currentGrid![rowIndex][colIndex],
                   tileSize,
                 ),
+              ),
               );
             }),
           );

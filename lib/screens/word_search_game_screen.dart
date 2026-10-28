@@ -641,7 +641,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                             cellBorder = Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.08));
                           }
 
-                          return Container(
+                          return Semantics(label: 'Row ${r + 1}, column ${c + 1}, letter $letter${wordColor != null ? ", part of a found word" : ""}', child: Container(
                             key: ValueKey('cell_${r}_$c'),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
@@ -663,7 +663,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                                 color: theme.colorScheme.onSurface,
                               ),
                             ),
-                          );
+                          ));
                         },
                       ),
                     );

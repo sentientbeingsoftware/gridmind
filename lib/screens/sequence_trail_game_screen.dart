@@ -417,7 +417,7 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
                       final isNext = val == _nextTargetNumber;
                       final tileColor = _getTileColor(val, themeColor);
 
-                      return GestureDetector(
+                      return Semantics(label: 'Row ${index ~/ widget.gridSize + 1}, column ${index % widget.gridSize + 1}, number $val${isNext ? ", next" : ""}', button: true, child: GestureDetector(
                         onTap: () => _handleCellTap(index),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
@@ -458,7 +458,7 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
                             ],
                           ),
                         ),
-                      );
+                      ));
                     },
                   ),
                 ),

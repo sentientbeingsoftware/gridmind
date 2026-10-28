@@ -383,7 +383,7 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
                       final isSelected = _selectedCells.contains(Point(r, c));
                       final tileColor = _getTileColor(val);
 
-                      return AnimatedContainer(
+                      return Semantics(label: 'Row ${r + 1}, column ${c + 1}, $val${isSelected ? ", selected" : ""}', child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -429,7 +429,7 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
                             ),
                           ),
                         ),
-                      );
+                      ));
                     },
                   ),
                 );
