@@ -269,8 +269,11 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Wrap(
+                      alignment: WrapAlignment.spaceEvenly,
+                      runAlignment: WrapAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         if (hasHighScore)
                           _buildHudStatCard(
@@ -401,8 +404,11 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
               Padding(
                 padding: EdgeInsets.fromLTRB(
                     16, compact ? 4 : 16, 16, compact ? 8 : 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceEvenly,
+                  runAlignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     if (widget.onUndo != null)
                       ElevatedButton.icon(
@@ -476,7 +482,8 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
             children: [
               Icon(icon, color: accentColor, size: 20),
               const SizedBox(width: 8),
-              Column(
+              Flexible(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -495,6 +502,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                     ),
                   ),
                 ],
+              ),
               ),
             ],
           ),
