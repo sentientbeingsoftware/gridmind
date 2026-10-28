@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/telemetry_service.dart';
 
@@ -251,7 +252,16 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
           ],
         ),
         body: SafeArea(
-          child: Column(
+          // Below _kMinBodyHeight (tiny window or very large text) the whole
+          // screen scrolls; above it scrolling is off so board drags are safe.
+          child: LayoutBuilder(
+            builder: (context, box) => SingleChildScrollView(
+              physics: box.maxHeight >= _kMinBodyHeight
+                  ? const NeverScrollableScrollPhysics()
+                  : null,
+              child: SizedBox(
+                height: max(box.maxHeight, _kMinBodyHeight),
+                child: Column(
             children: [
               // Unified premium HUD Container
               Container(
@@ -269,8 +279,11 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Wrap(
+                      alignment: WrapAlignment.spaceEvenly,
+                      runAlignment: WrapAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         if (hasHighScore)
                           _buildHudStatCard(
@@ -401,8 +414,11 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
               Padding(
                 padding: EdgeInsets.fromLTRB(
                     16, compact ? 4 : 16, 16, compact ? 8 : 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceEvenly,
+                  runAlignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     if (widget.onUndo != null)
                       ElevatedButton.icon(
@@ -441,6 +457,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
               ),
             ],
           ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -476,7 +495,8 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
             children: [
               Icon(icon, color: accentColor, size: 20),
               const SizedBox(width: 8),
-              Column(
+              Flexible(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -496,6 +516,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                   ),
                 ],
               ),
+              ),
             ],
           ),
         ),
@@ -503,6 +524,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     );
   }
 }
+
+/// Below this body height the whole screen scrolls instead of overflowing.
+const double _kMinBodyHeight = 540;
 
 /// Screens shorter than this (in logical pixels) use tighter spacing.
 const double _kCompactHeight = 740;

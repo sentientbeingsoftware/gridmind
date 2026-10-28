@@ -650,16 +650,14 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                               letter,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontSize: widget.gridSize > 16
-                                    ? 8.0
+                                    ? 9.0
                                     : widget.gridSize > 12
-                                        ? 10.0
+                                        ? 11.0
                                         : widget.gridSize > 8
-                                            ? 13.0
-                                            : 16.0,
-                                fontWeight: (isSelecting || wordColor != null) ? FontWeight.bold : FontWeight.normal,
-                                color: (isSelecting || wordColor != null)
-                                    ? theme.colorScheme.onSurface
-                                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                            ? 14.0
+                                            : 17.0,
+                                fontWeight: (isSelecting || wordColor != null) ? FontWeight.bold : FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                           );
