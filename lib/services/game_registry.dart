@@ -1117,8 +1117,8 @@ class GameRegistry {
           label: 'Target Value',
           defaultValue: 12.0,
           min: 6.0,
-          max: 30.0,
-          divisions: 12,
+          max: 60.0,
+          divisions: 27,
         ),
         DropdownConfigOption<String>(
           key: 'moveMode',
