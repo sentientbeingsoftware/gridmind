@@ -102,8 +102,10 @@ An alignment transformation puzzle.
 - **Configurable conditions**: Sliders and dropdowns adjusting difficulty levels and play modes.
 
 ### 🗺️ Territory
-- **Adjacent Expansion**: Expand your territory across adjacent weighted cells (1–3) to reach the target value.
-- **Move Limitations**: Plan high-value routes to reach the target before running out of turns.
+- **Adjacent Expansion**: Expand your territory across adjacent weighted cells (1–3). Land *exactly* on the target value; going over busts.
+- **Hidden Traps**: Optional cells (off / low ~5% / high ~10%) show a decoy value until claimed, then subtract 1–2.
+- **Rival**: Optional opponent (off by default) that claims a cell after each of your moves.
+- **Undo & Move Limits**: Undo your last move; Challenge mode caps your moves. Grids 3–10, target 6–60.
 
 ---
 
