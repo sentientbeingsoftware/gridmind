@@ -295,10 +295,12 @@ class _ColorFloodGameScreenState extends State<ColorFloodGameScreen> with Config
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LayoutBuilder(
+            // Flexible: the board takes only the height the palette leaves over.
+            Flexible(
+              child: LayoutBuilder(
               builder: (gridContext, constraints) {
                 final maxSize = min(constraints.maxWidth, constraints.maxHeight);
-                final double gridSizePx = max(200.0, min(400.0, maxSize));
+                final double gridSizePx = min(400.0, maxSize);
                 return Container(
                   width: gridSizePx,
                   height: gridSizePx,
@@ -333,6 +335,7 @@ class _ColorFloodGameScreenState extends State<ColorFloodGameScreen> with Config
                   ),
                 );
               },
+            ),
             ),
             const SizedBox(height: 24),
             Wrap(
