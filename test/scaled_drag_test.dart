@@ -48,7 +48,7 @@ void main() {
     await t.pumpAndSettle();
 
     final rect = t.getRect(find
-        .descendant(of: find.byType(Listener), matching: find.byType(GestureDetector))
+        .descendant(of: find.byType(AspectRatio), matching: find.byType(GestureDetector))
         .first);
     Offset cell(int r, int c) =>
         rect.topLeft + Offset(rect.width / 4 * (c + 0.5), rect.height / 4 * (r + 0.5));

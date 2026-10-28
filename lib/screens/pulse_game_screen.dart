@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'base_game_screen.dart';
@@ -170,10 +171,12 @@ class _PulseGameScreenState extends State<PulseGameScreen> with ConfigHighScoreM
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.width * 0.9,
-              child: _buildGrid(),
+            Flexible(
+              child: LayoutBuilder(builder: (context, box) {
+                // Square, limited by both width and height (wide windows are short).
+                final side = min(MediaQuery.of(context).size.width * 0.9, box.maxHeight);
+                return SizedBox(width: side, height: side, child: _buildGrid());
+              }),
             ),
           ],
         ),
