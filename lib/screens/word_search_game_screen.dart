@@ -545,6 +545,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
           ? (widget.moveMode == 'challenge' ? '${bestScore}s' : 'Yes') 
           : '-',
       currentScoreLabel: widget.moveMode == 'challenge' ? 'Time Left' : 'Words Found',
+      tickOnScoreChange: widget.moveMode != 'challenge', // slot is a countdown there
       currentScoreValue: widget.moveMode == 'challenge' ? hudValue : '${_foundWords.length}/${_targetWords.length}',
       statusText: widget.moveMode == 'challenge'
           ? 'Time remaining: ${_timeLeft}s'

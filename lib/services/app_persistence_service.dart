@@ -114,6 +114,18 @@ class AppPersistenceService {
     );
   }
 
+  static const String _soundEffectsKey = 'sound_effects_enabled';
+  static const String _hapticsKey = 'haptics_enabled';
+
+  Future<bool> getSoundEffectsEnabled() async =>
+      (await _getPrefs()).getBool(_soundEffectsKey) ?? true;
+  Future<void> setSoundEffectsEnabled(bool v) async =>
+      (await _getPrefs()).setBool(_soundEffectsKey, v);
+  Future<bool> getHapticsEnabled() async =>
+      (await _getPrefs()).getBool(_hapticsKey) ?? true;
+  Future<void> setHapticsEnabled(bool v) async =>
+      (await _getPrefs()).setBool(_hapticsKey, v);
+
   static const String _musicEnabledKey = 'background_music_enabled';
 
   Future<bool> getMusicEnabled() async {
