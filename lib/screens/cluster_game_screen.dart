@@ -1,3 +1,4 @@
+import '../utils/color_names.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/app_persistence_service.dart';
@@ -307,7 +308,10 @@ class _ClusterGameScreenState extends State<ClusterGameScreen> with ConfigHighSc
                 final color = _grid[r][c];
                 final isSelected = _selectedRow == r && _selectedCol == c;
 
-                return GestureDetector(
+                return Semantics(
+label: 'Row ${r + 1}, column ${c + 1}, ${colorName(color)}${isSelected ? ", selected" : ""}',
+button: true,
+child: GestureDetector(
                   onTap: () => _onCellTap(r, c),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -327,7 +331,8 @@ class _ClusterGameScreenState extends State<ClusterGameScreen> with ConfigHighSc
                           )
                         : null,
                   ),
-                );
+                ),
+);
               },
             ),
           ),

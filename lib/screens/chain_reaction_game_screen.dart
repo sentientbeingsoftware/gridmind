@@ -544,7 +544,10 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
                   }
                 }
 
-                return GestureDetector(
+                return Semantics(
+label: 'Row ${r + 1}, column ${c + 1}, $count of $capacity',
+button: true,
+child: GestureDetector(
                   onTap: () => _handleCellTap(r, c),
                   child: AnimatedBuilder(
                     animation: _pulseController,
@@ -580,7 +583,8 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
                       );
                     },
                   ),
-                );
+                ),
+);
               },
             ),
           ),

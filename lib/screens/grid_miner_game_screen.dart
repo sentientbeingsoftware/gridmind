@@ -474,7 +474,12 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
                   }
                 }
 
-                return GestureDetector(
+                return Semantics(
+label: 'Row ${r + 1}, column ${c + 1}, ${isPlayerHere ? "you are here" : !isExplored ? "unexplored" : type == "R" ? "resource" : type == "H" ? "hazard" : type == "P" ? "energy pack" : "empty"}',
+button: true,
+onTap: () => _moveMiner(r, c),
+excludeSemantics: true,
+child: GestureDetector(
                   onTap: () => _moveMiner(r, c),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -509,7 +514,8 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
                           : contentWidget,
                     ),
                   ),
-                );
+                ),
+);
               },
             ),
           ),

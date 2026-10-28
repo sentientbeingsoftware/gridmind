@@ -1,3 +1,4 @@
+import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../services/app_persistence_service.dart';
@@ -344,7 +345,10 @@ class _ColorFloodGameScreenState extends State<ColorFloodGameScreen> with Config
               alignment: WrapAlignment.center,
               children: activeColors.map((color) {
                 final isCurrent = _grid.isNotEmpty && _grid[0][0] == color;
-                return GestureDetector(
+                return Semantics(
+label: 'Flood with ${colorName(color)}${isCurrent ? ", current color" : ""}',
+button: true,
+child: GestureDetector(
                   onTap: () => _floodFill(color),
                   child: Container(
                     width: 44,
@@ -366,7 +370,8 @@ class _ColorFloodGameScreenState extends State<ColorFloodGameScreen> with Config
                       ],
                     ),
                   ),
-                );
+                ),
+);
               }).toList(),
             ),
           ],

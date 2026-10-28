@@ -267,7 +267,10 @@ class _BinaryLightsGameScreenState extends State<BinaryLightsGameScreen> with Co
                 final isOn = _grid[r][c];
                 final tileColor = isOn ? onColor : offColor;
 
-                return GestureDetector(
+                return Semantics(
+label: 'Row ${r + 1}, column ${c + 1}, light ${isOn ? "on" : "off"}',
+button: true,
+child: GestureDetector(
                   onTap: () => _handleCellTap(r, c),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -299,7 +302,8 @@ class _BinaryLightsGameScreenState extends State<BinaryLightsGameScreen> with Co
                       ),
                     ),
                   ),
-                );
+                ),
+);
               },
             ),
           ),

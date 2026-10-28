@@ -425,7 +425,10 @@ class _MirrorMatchGameScreenState extends State<MirrorMatchGameScreen> with Conf
                         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15);
                   }
 
-                  return GestureDetector(
+                  return Semantics(
+label: 'Row ${r + 1}, column ${c + 1}, ${isPainted ? "filled" : "empty"}, ${isInteractive ? "yours" : "reference side"}',
+button: true,
+child: GestureDetector(
                     onTap: isInteractive ? () => _toggleCell(r, c) : null,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
@@ -451,7 +454,8 @@ class _MirrorMatchGameScreenState extends State<MirrorMatchGameScreen> with Conf
                                 )
                               : null),
                     ),
-                  );
+                  ),
+);
                 },
               ),
               if (widget.symmetryType == 'vertical')

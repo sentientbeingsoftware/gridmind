@@ -1,3 +1,4 @@
+import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
@@ -399,7 +400,10 @@ class _SimonGameScreenState extends State<SimonGameScreen> with ConfigHighScoreM
                               color,
                             );
                           }
-                          return GestureDetector(
+                          return Semantics(
+label: 'Button ${index + 1} of ${widget.numberOfSquares}, ${colorName(color)}',
+button: true,
+child: GestureDetector(
                             onTap: () => _handleTap(index),
                             child: Container(
                               width: buttonSize,
@@ -436,7 +440,8 @@ class _SimonGameScreenState extends State<SimonGameScreen> with ConfigHighScoreM
                                       ],
                               ),
                             ),
-                          );
+                          ),
+);
                         }),
                       );
                       colorIdx += rowLen;
