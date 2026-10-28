@@ -357,23 +357,27 @@ class _GridRunnerGameScreenState extends State<GridRunnerGameScreen> with Config
                   children: [
                     IconButton.filledTonal(
                       icon: const Icon(Icons.keyboard_arrow_up),
+                      tooltip: 'Move up',
                       onPressed: () => _changeDirection(const Point(-1, 0)),
                     ),
                     Row(
                       children: [
                         IconButton.filledTonal(
                           icon: const Icon(Icons.keyboard_arrow_left),
+                      tooltip: 'Move left',
                           onPressed: () => _changeDirection(const Point(0, -1)),
                         ),
                         const SizedBox(width: 48),
                         IconButton.filledTonal(
                           icon: const Icon(Icons.keyboard_arrow_right),
+                      tooltip: 'Move right',
                           onPressed: () => _changeDirection(const Point(0, 1)),
                         ),
                       ],
                     ),
                     IconButton.filledTonal(
                       icon: const Icon(Icons.keyboard_arrow_down),
+                      tooltip: 'Move down',
                       onPressed: () => _changeDirection(const Point(1, 0)),
                     ),
                   ],

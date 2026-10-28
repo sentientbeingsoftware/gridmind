@@ -1,4 +1,6 @@
 // lib/collapse_game_screen.dart
+import 'package:flutter/semantics.dart';
+import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../models/collapse_models.dart';
@@ -312,6 +314,16 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
         safetyBreak < _gridSize * _gridSize); // A reasonable limit
 
     await _checkAndHandleNoMoves();
+  }
+
+  /// Screen-reader equivalent of dragging a block one square: runs the same
+  /// end-of-drag logic with a full-tile drag in the given direction.
+  Future<void> _semanticSwap(int row, int col, int dRow, int dCol) {
+    if (_grid[row][col] == null || _grid[row][col]!.isEmpty) return Future.value();
+    _dragStartBlockPosition = Point(row, col);
+    _dragDirection = dRow == 0 ? 'horizontal' : 'vertical';
+    _dragAccumulatedDelta = Offset(dCol * _tileSize, dRow * _tileSize);
+    return _handleDragEnd(DragEndDetails());
   }
 
   void _handleDragStart(DragStartDetails details, int row, int col) {
@@ -850,7 +862,17 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
                         bool isCurrentlyDragged =
                             _currentlyDraggedBlockPosition?.x == row &&
                             _currentlyDraggedBlockPosition?.y == col;
-                        return GestureDetector(
+                        return Semantics(
+                          label: 'Row ${row + 1}, column ${col + 1}, ${block == null || block.isEmpty ? "empty" : colorName(block.color)}',
+                          customSemanticsActions: block == null || block.isEmpty
+                              ? null
+                              : {
+                                  const CustomSemanticsAction(label: 'Swap left'): () => _semanticSwap(row, col, 0, -1),
+                                  const CustomSemanticsAction(label: 'Swap right'): () => _semanticSwap(row, col, 0, 1),
+                                  const CustomSemanticsAction(label: 'Swap up'): () => _semanticSwap(row, col, -1, 0),
+                                  const CustomSemanticsAction(label: 'Swap down'): () => _semanticSwap(row, col, 1, 0),
+                                },
+                          child: GestureDetector(
                           onHorizontalDragStart: (details) =>
                               _handleDragStart(details, row, col),
                           onHorizontalDragUpdate: (details) =>
@@ -890,6 +912,7 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
                               ),
                             ),
                           ),
+                        ),
                         );
                       },
                     ),

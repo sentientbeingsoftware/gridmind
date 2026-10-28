@@ -627,7 +627,7 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                                         cellColor = themeColor;
                                       }
 
-                                      return GestureDetector(
+                                      return Semantics(label: 'Row ${r + 1}, column ${c + 1}, ${isPainted ? "painted" : "empty"}${isBrushHere ? ", brush here" : ""}', button: true, child: GestureDetector(
                                         onTap: () => _moveBrushTo(r, c),
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -652,7 +652,7 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                                                 )
                                               : null,
                                         ),
-                                      );
+                                      ));
                                     },
                                   ),
                                 );
@@ -674,12 +674,14 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                       children: [
                         IconButton.filledTonal(
                           icon: const Icon(Icons.keyboard_arrow_up),
+                          tooltip: 'Move brush up',
                           onPressed: () => _moveBrush(-1, 0),
                         ),
                         Row(
                           children: [
                             IconButton.filledTonal(
                               icon: const Icon(Icons.keyboard_arrow_left),
+                          tooltip: 'Move brush left',
                               onPressed: () => _moveBrush(0, -1),
                             ),
                             const SizedBox(width: 8),
@@ -689,18 +691,20 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
                               child: CircleAvatar(
                                 radius: 20,
                                 backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
-                                child: const Icon(Icons.circle_outlined, size: 18),
+                                child: const Icon(Icons.circle_outlined, size: 18, semanticLabel: 'Toggle current cell'),
                               ),
                             ),
                             const SizedBox(width: 8),
                             IconButton.filledTonal(
                               icon: const Icon(Icons.keyboard_arrow_right),
+                          tooltip: 'Move brush right',
                               onPressed: () => _moveBrush(0, 1),
                             ),
                           ],
                         ),
                         IconButton.filledTonal(
                           icon: const Icon(Icons.keyboard_arrow_down),
+                          tooltip: 'Move brush down',
                           onPressed: () => _moveBrush(1, 0),
                         ),
                       ],

@@ -488,7 +488,25 @@ class _PathWeaverGameScreenState extends State<PathWeaverGameScreen> with Config
                             } else if (cell.isOneWay) {
                               color = Colors.purple.shade200;
                             }
-                            return Container(
+                            final what = cell.isStart
+                                ? 'start'
+                                : cell.isEnd
+                                    ? 'end'
+                                    : cell.isObstacle
+                                        ? 'blocked'
+                                        : cell.isPath
+                                            ? 'on your path'
+                                            : cell.isPowerUp
+                                                ? 'power-up'
+                                                : cell.isOneWay
+                                                    ? 'one-way'
+                                                    : 'open';
+                            return Semantics(
+                              label: 'Row ${r + 1}, column ${c + 1}, $what',
+                              button: !cell.isObstacle && !cell.isPath,
+                              onTap: () => _handleCellTap(r, c),
+                              excludeSemantics: true,
+                              child: Container(
                               margin: const EdgeInsets.all(2),
                               decoration: BoxDecoration(
                                 color: color,
@@ -498,6 +516,7 @@ class _PathWeaverGameScreenState extends State<PathWeaverGameScreen> with Config
                               child: cell.isOneWay && cell.oneWayDirection != null
                                   ? Center(child: Icon(_arrowIcon(cell.oneWayDirection!), size: 18, color: Colors.purple.shade700))
                                   : null,
+                            ),
                             );
                           },
                         ),
