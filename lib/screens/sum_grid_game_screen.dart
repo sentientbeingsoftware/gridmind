@@ -1,3 +1,5 @@
+import '../utils/announce.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:async';
@@ -182,6 +184,37 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
         _handleFailMatch();
       }
     }
+  }
+
+  /// Screen-reader path: each activation adds a cell to the selection (or
+  /// starts one), using the same rules as a drag. Activating the previous cell
+  /// removes the last one.
+  void _semanticSelect(int r, int c) {
+    if (_isGameOver || _isGameWon) return;
+    final cell = Point(r, c);
+    if (_selectedCells.isEmpty) {
+      _handleCellTouchStart(r, c);
+      if (_selectedCells.isNotEmpty) announce(context, 'Started at row ${r + 1}, column ${c + 1}. Sum $_currentSelectionSum of $_targetSum.');
+      return;
+    }
+    final before = _selectedCells.length;
+    final scoreBefore = _score;
+    _handleCellTouchUpdate(r, c);
+    if (_score != scoreBefore) {
+      announce(context, 'Match! New target $_targetSum.');
+    } else if (_selectedCells.isEmpty) {
+      announce(context, 'Sum went over the target. Selection cleared.');
+    } else if (_selectedCells.length == before && _selectedCells.last != cell) {
+      announce(context, 'Not next to your last cell. Pick a neighbouring cell.');
+    } else {
+      announce(context, 'Sum $_currentSelectionSum of $_targetSum.');
+    }
+  }
+
+  void _semanticClear() {
+    if (_selectedCells.isEmpty) return;
+    _handleCellTouchEnd();
+    announce(context, 'Selection cleared.');
   }
 
   void _handleCellTouchEnd() {
@@ -383,7 +416,7 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
                       final isSelected = _selectedCells.contains(Point(r, c));
                       final tileColor = _getTileColor(val);
 
-                      return Semantics(label: 'Row ${r + 1}, column ${c + 1}, $val${isSelected ? ", selected" : ""}', child: AnimatedContainer(
+                      return Semantics(label: 'Row ${r + 1}, column ${c + 1}, $val${isSelected ? ", selected" : ""}', button: true, onTap: () => _semanticSelect(r, c), customSemanticsActions: {const CustomSemanticsAction(label: 'Clear selection'): _semanticClear}, child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(

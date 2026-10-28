@@ -1,3 +1,4 @@
+import '../utils/announce.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -398,6 +399,34 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
     });
   }
 
+  /// Screen-reader path: activate a start cell, then an end cell in a straight
+  /// line (row, column or diagonal). Activating the start again cancels.
+  void _semanticSelect(int r, int c) {
+    if (_isGameOver || _isGameWon) return;
+    final p = Point(r, c);
+    if (!_dragging || _startCell == null) {
+      _handleCellTouchStart(r, c);
+      announce(context, 'Start set at row ${r + 1}, column ${c + 1}, letter ${_grid[r][c]}. Activate the last letter of the word.');
+      return;
+    }
+    if (p == _startCell) {
+      _handleCellTouchEnd();
+      announce(context, 'Selection cancelled.');
+      return;
+    }
+    final dr = r - _startCell!.x, dc = c - _startCell!.y;
+    if (dr != 0 && dc != 0 && dr.abs() != dc.abs()) {
+      announce(context, 'Not in a straight line from the start. Pick another end cell, or activate the start to cancel.');
+      return;
+    }
+    final foundBefore = _foundWords.length;
+    _handleCellTouchUpdate(r, c);
+    _handleCellTouchEnd();
+    announce(context, _foundWords.length > foundBefore
+        ? 'Found ${_foundWords.last}. ${_targetWords.length - _foundWords.length} left.'
+        : 'Not a word. Selection cleared.');
+  }
+
   void _handleCellTouchEnd() {
     if (!_dragging) return;
     final selectionStr = _selectedCells.map((p) => _grid[p.x][p.y]).join();
@@ -641,7 +670,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                             cellBorder = Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.08));
                           }
 
-                          return Semantics(label: 'Row ${r + 1}, column ${c + 1}, letter $letter${wordColor != null ? ", part of a found word" : ""}', child: Container(
+                          return Semantics(label: 'Row ${r + 1}, column ${c + 1}, letter $letter${wordColor != null ? ", part of a found word" : ""}${_startCell == Point(r, c) ? ", start of selection" : ""}', button: true, onTap: () => _semanticSelect(r, c), child: Container(
                             key: ValueKey('cell_${r}_$c'),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
