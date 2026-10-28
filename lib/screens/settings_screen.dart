@@ -1,3 +1,4 @@
+import '../services/game_effects.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/game_metadata.dart';
@@ -41,6 +42,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final AppPersistenceService _appPersistenceService = AppPersistenceService();
   bool _telemetryEnabled = false;
   bool _musicEnabled = true;
+  bool _soundEffects = true;
+  bool _haptics = true;
   String _musicTrackId = kDefaultMusicTrackId;
   final TelemetryService _telemetry = TelemetryService();
 
@@ -77,8 +80,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadMusicStatus() async {
     final enabled = await _appPersistenceService.getMusicEnabled();
     final trackId = await _appPersistenceService.getMusicTrack();
+    final sfx = await _appPersistenceService.getSoundEffectsEnabled();
+    final hap = await _appPersistenceService.getHapticsEnabled();
     if (mounted) {
       setState(() {
+        _soundEffects = sfx;
+        _haptics = hap;
         _musicEnabled = enabled;
         _musicTrackId = musicTrackById(trackId).id;
       });
@@ -461,6 +468,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   } else {
                     await _appPersistenceService.setMusicEnabled(val);
                   }
+                },
+              ),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                secondary: Icon(Icons.graphic_eq, color: theme.colorScheme.secondary),
+                title: const Text('Sound Effects'),
+                subtitle: const Text('Win and lose jingles, and Simon tones.'),
+                value: _soundEffects,
+                onChanged: (val) async {
+                  setState(() => _soundEffects = val);
+                  GameEffects.instance.apply(sound: val);
+                  await _appPersistenceService.setSoundEffectsEnabled(val);
+                },
+              ),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                secondary: Icon(Icons.vibration, color: theme.colorScheme.secondary),
+                title: const Text('Haptic Feedback'),
+                subtitle: const Text('A light tap on each move and a stronger one at the end.'),
+                value: _haptics,
+                onChanged: (val) async {
+                  setState(() => _haptics = val);
+                  GameEffects.instance.apply(haptics: val);
+                  await _appPersistenceService.setHapticsEnabled(val);
                 },
               ),
               ListTile(

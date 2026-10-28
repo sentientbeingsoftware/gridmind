@@ -1,3 +1,4 @@
+import '../services/game_effects.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/telemetry_service.dart';
@@ -14,6 +15,8 @@ class BaseGameScreen extends StatefulWidget {
 
   /// Optional label/value for the current score or current moves display
   final String? currentScoreLabel;
+  /// False when the score slot is a live countdown, so it must not tap every second.
+  final bool tickOnScoreChange;
   final String? currentScoreValue;
 
   /// Current status message or instruction (e.g., "Watch the Pattern", "Your Turn")
@@ -68,6 +71,7 @@ class BaseGameScreen extends StatefulWidget {
     this.highScoreLabel = 'Best',
     this.highScoreValue,
     this.currentScoreLabel = 'Score',
+    this.tickOnScoreChange = true,
     this.currentScoreValue,
     this.statusText,
     this.statusTextColor,
@@ -131,6 +135,16 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
   @override
   void didUpdateWidget(BaseGameScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.isGameWon && !oldWidget.isGameWon) {
+      GameEffects.instance.win();
+    } else if (widget.isGameOver && !oldWidget.isGameOver) {
+      GameEffects.instance.lose();
+    } else if (widget.tickOnScoreChange &&
+        widget.currentScoreValue != oldWidget.currentScoreValue &&
+        !widget.isGameWon &&
+        !widget.isGameOver) {
+      GameEffects.instance.tick(); // any score/move change = one light tap
+    }
     if (widget.gameId != null && !_loggedEndEvent) {
       if (widget.isGameWon && !oldWidget.isGameWon) {
         _stopwatch.stop();
