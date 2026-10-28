@@ -1130,6 +1130,17 @@ class GameRegistry {
             DropdownMenuItem(value: 'challenge', child: Text('Challenge Mode')),
           ],
         ),
+        DropdownConfigOption<String>(
+          key: 'traps',
+          label: 'Hidden Traps',
+          defaultValue: 'low',
+          items: const [
+            DropdownMenuItem(value: 'off', child: Text('Off')),
+            DropdownMenuItem(value: 'low', child: Text('Low (~10%)')),
+            DropdownMenuItem(value: 'high', child: Text('High (~20%)')),
+          ],
+        ),
+        SwitchConfigOption(key: 'rival', label: 'Rival (claims cells)', defaultValue: false),
       ],
       gameBuilder: (context, config) {
         final size = (config['gridSize'] is num)
@@ -1143,6 +1154,8 @@ class GameRegistry {
           gridSize: size,
           targetArea: targetArea,
           moveMode: moveMode,
+          traps: config['traps']?.toString() ?? 'low',
+          rival: config['rival'] == true,
         );
       },
     ),

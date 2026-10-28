@@ -46,18 +46,18 @@ void main() {
       expect(find.text('Captured 2/10'), findsOneWidget);
     });
 
-    testWidgets('winning in Zen mode shows victory message and clamps oversized target', (WidgetTester tester) async {
+    testWidgets('winning in Zen mode shows victory message on an exact total', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      // All values 1; max achievable on 3x3 (8 claimable cells) is 8.
+      // All values 1; claiming all 8 cells lands exactly on 8.
       await tester.pumpWidget(
         const MaterialApp(
           home: TerritoryGameScreen(
             gridSize: 3,
-            targetArea: 15,
+            targetArea: 8,
             moveMode: 'zen',
             testMode: true,
             testValues: [1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -74,6 +74,47 @@ void main() {
       }
 
       expect(find.text('Victory! Territory captured.'), findsOneWidget);
+    });
+
+    testWidgets('overshooting the target busts; a trap subtracts and undo reverts', (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      Future<Finder> start(List<int> v, int target) async {
+        await tester.pumpWidget(MaterialApp(
+          home: TerritoryGameScreen(
+              key: UniqueKey(), gridSize: 3, targetArea: target, moveMode: 'zen', testMode: true, testValues: v),
+        ));
+        return find.byType(GestureDetector);
+      }
+
+      var cells = await start([1, 3, 1, 3, 1, 1, 1, 1, 1], 4);
+      await tester.tap(cells.at(1)); // 3
+      await tester.pump();
+      await tester.tap(cells.at(2)); // 4 -> exact win
+      await tester.pump();
+      expect(find.text('Victory! Territory captured.'), findsOneWidget);
+
+      cells = await start([1, 3, 1, 3, 1, 1, 1, 1, 1], 5);
+      await tester.tap(cells.at(1)); // 3
+      await tester.pump();
+      await tester.tap(cells.at(4)); // 4
+      await tester.pump();
+      await tester.tap(cells.at(3)); // 7 > 5 -> bust
+      await tester.pump();
+      expect(find.text('Bust! You went over the target.'), findsOneWidget);
+
+      cells = await start([1, 3, -2, 1, 1, 1, 1, 1, 1], 9);
+      await tester.tap(cells.at(1));
+      await tester.pump();
+      await tester.tap(cells.at(2)); // trap: 3 - 2 = 1
+      await tester.pump();
+      expect(find.text('Captured 1/9'), findsOneWidget);
+      await tester.tap(find.text('Undo'));
+      await tester.pump();
+      expect(find.text('Captured 3/9'), findsOneWidget);
     });
 
     testWidgets('challenge mode limits moves and triggers game over', (WidgetTester tester) async {
@@ -109,7 +150,7 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final cfg = {'gridSize': 3.0, 'targetArea': 3.0, 'moveMode': 'zen'};
+      final cfg = {'gridSize': 3.0, 'targetArea': 3.0, 'moveMode': 'zen', 'traps': 'off', 'rival': false};
       // Cell 1 = 3 pts (1-move win), cells 3 & 6 = 2 + 1 pts (2-move win).
       const board = [1, 3, 1, 2, 1, 1, 1, 1, 1];
 
@@ -119,6 +160,7 @@ void main() {
             gridSize: 3,
             targetArea: 3,
             moveMode: 'zen',
+            traps: 'off',
             testMode: true,
             testValues: board,
           ),
