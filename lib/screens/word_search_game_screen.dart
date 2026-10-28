@@ -545,6 +545,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
           ? (widget.moveMode == 'challenge' ? '${bestScore}s' : 'Yes') 
           : '-',
       currentScoreLabel: widget.moveMode == 'challenge' ? 'Time Left' : 'Words Found',
+      tickOnScoreChange: widget.moveMode != 'challenge', // slot is a countdown there
       currentScoreValue: widget.moveMode == 'challenge' ? hudValue : '${_foundWords.length}/${_targetWords.length}',
       statusText: widget.moveMode == 'challenge'
           ? 'Time remaining: ${_timeLeft}s'
@@ -560,8 +561,10 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       isGameInProgress: _foundWords.isNotEmpty && !_isGameOver && !_isGameWon,
       child: Column(
         children: [
-          // Word search board container
-          Padding(
+          // Word search board container. Flexible: in a wide, short window the
+          // square board shrinks to the height available instead of overflowing.
+          Flexible(
+            child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: AspectRatio(
               aspectRatio: 1.0,
@@ -667,6 +670,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                   },
                 ),
               ),
+            ),
             ),
           ),
           

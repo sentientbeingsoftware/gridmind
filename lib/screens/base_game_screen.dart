@@ -1,3 +1,4 @@
+import '../services/game_effects.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/telemetry_service.dart';
@@ -14,6 +15,8 @@ class BaseGameScreen extends StatefulWidget {
 
   /// Optional label/value for the current score or current moves display
   final String? currentScoreLabel;
+  /// False when the score slot is a live countdown, so it must not tap every second.
+  final bool tickOnScoreChange;
   final String? currentScoreValue;
 
   /// Current status message or instruction (e.g., "Watch the Pattern", "Your Turn")
@@ -68,6 +71,7 @@ class BaseGameScreen extends StatefulWidget {
     this.highScoreLabel = 'Best',
     this.highScoreValue,
     this.currentScoreLabel = 'Score',
+    this.tickOnScoreChange = true,
     this.currentScoreValue,
     this.statusText,
     this.statusTextColor,
@@ -131,6 +135,16 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
   @override
   void didUpdateWidget(BaseGameScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.isGameWon && !oldWidget.isGameWon) {
+      GameEffects.instance.win();
+    } else if (widget.isGameOver && !oldWidget.isGameOver) {
+      GameEffects.instance.lose();
+    } else if (widget.tickOnScoreChange &&
+        widget.currentScoreValue != oldWidget.currentScoreValue &&
+        !widget.isGameWon &&
+        !widget.isGameOver) {
+      GameEffects.instance.tick(); // any score/move change = one light tap
+    }
     if (widget.gameId != null && !_loggedEndEvent) {
       if (widget.isGameWon && !oldWidget.isGameWon) {
         _stopwatch.stop();
@@ -214,58 +228,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     final buttonPadding =
         EdgeInsets.symmetric(horizontal: 20, vertical: compact ? 8 : 12);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _handleExit(context);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Back to menu',
-            onPressed: () => _handleExit(context),
-          ),
-          actions: [
-            if (widget.onHelp != null)
-              IconButton(
-                icon: const Icon(Icons.help_outline),
-                tooltip: 'How to play',
-                onPressed: widget.onHelp,
-              ),
-            if (widget.onReset != null)
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Restart',
-                onPressed: () {
-                  _stopwatch.reset();
-                  _stopwatch.start();
-                  _sessionStartTime = DateTime.now();
-                  _loggedEndEvent = false;
-                  if (widget.onReset != null) widget.onReset!();
-                },
-              ),
-            ...?widget.appBarActions,
-          ],
-        ),
-        body: SafeArea(
-          // Below _kMinBodyHeight (tiny window or very large text) the whole
-          // screen scrolls; above it scrolling is off so board drags are safe.
-          child: LayoutBuilder(
-            builder: (context, box) => SingleChildScrollView(
-              physics: box.maxHeight >= _kMinBodyHeight
-                  ? const NeverScrollableScrollPhysics()
-                  : null,
-              child: SizedBox(
-                width: double.infinity,
-                height: max(box.maxHeight, _kMinBodyHeight),
-                child: Column(
-            children: [
-              // Unified premium HUD Container
-              Container(
+    final Widget hudBox = Container(
                 margin: EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: compact ? 4.0 : 8.0),
                 padding: EdgeInsets.all(compact ? 8.0 : 12.0),
@@ -326,9 +289,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                     ],
                   ],
                 ),
-              ),
+              );
 
-              // Victory / Defeat Overlay banner
+    final List<Widget> bannerList = <Widget>[
               if (widget.isGameWon)
                 Semantics(
                   liveRegion: true,
@@ -397,22 +360,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                     ),
                   ),
                 ),
+    ];
 
-              // Game area: optional top extra (e.g. the target pattern in Slide
-              // and Solve) plus the board. It is scaled down to fit when the
-              // screen is short, instead of overflowing.
-              Expanded(
-                child: _FitToHeight(
-                  topExtra: widget.topHudExtra,
-                  gap: gap,
-                  child: widget.child,
-                ),
-              ),
-
-              SizedBox(height: gap),
-
-              // Action buttons row (Undo, Reset, Exit)
-              Padding(
+    final Widget buttonsRow = Padding(
                 padding: EdgeInsets.fromLTRB(
                     16, compact ? 4 : 16, 16, compact ? 8 : 16),
                 child: Wrap(
@@ -455,11 +405,117 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                     ),
                   ],
                 ),
-              ),
-            ],
+              );
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleExit(context);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Back to menu',
+            onPressed: () => _handleExit(context),
           ),
+          actions: [
+            if (widget.onHelp != null)
+              IconButton(
+                icon: const Icon(Icons.help_outline),
+                tooltip: 'How to play',
+                onPressed: widget.onHelp,
               ),
-            ),
+            if (widget.onReset != null)
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Restart',
+                onPressed: () {
+                  _stopwatch.reset();
+                  _stopwatch.start();
+                  _sessionStartTime = DateTime.now();
+                  _loggedEndEvent = false;
+                  if (widget.onReset != null) widget.onReset!();
+                },
+              ),
+            ...?widget.appBarActions,
+          ],
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, box) {
+              // Wide, landscape-ish windows (desktop, Play Games on PC,
+              // tablets): stats and buttons in a side panel, board on the right.
+              final wide = box.maxWidth >= _kWideWidth &&
+                  box.maxWidth >= box.maxHeight * 1.2;
+              if (wide) {
+                final panelWidth = min(380.0, box.maxWidth * 0.38);
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: panelWidth,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            hudBox,
+                            ...bannerList,
+                            SizedBox(height: gap),
+                            buttonsRow,
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      // Boards that size themselves from MediaQuery must see the
+                      // board area, not the whole window.
+                      child: LayoutBuilder(
+                        builder: (context, area) => MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                              size: Size(area.maxWidth, area.maxHeight)),
+                          child: _FitToHeight(
+                            topExtra: widget.topHudExtra,
+                            gap: gap,
+                            child: widget.child,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              // Portrait: below _kMinBodyHeight (tiny window or very large
+              // text) the whole screen scrolls; above it scrolling is off so
+              // board drags are safe.
+              return SingleChildScrollView(
+                physics: box.maxHeight >= _kMinBodyHeight
+                    ? const NeverScrollableScrollPhysics()
+                    : null,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: max(box.maxHeight, _kMinBodyHeight),
+                  child: Column(
+                    children: [
+                      hudBox,
+                      ...bannerList,
+                      // Game area: optional top extra plus the board, scaled
+                      // down to fit when the screen is short.
+                      Expanded(
+                        child: _FitToHeight(
+                          topExtra: widget.topHudExtra,
+                          gap: gap,
+                          child: widget.child,
+                        ),
+                      ),
+                      SizedBox(height: gap),
+                      buttonsRow,
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -525,6 +581,9 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     );
   }
 }
+
+/// Windows at least this wide (and wider than tall) use the side-panel layout.
+const double _kWideWidth = 720;
 
 /// Below this body height the whole screen scrolls instead of overflowing.
 const double _kMinBodyHeight = 540;

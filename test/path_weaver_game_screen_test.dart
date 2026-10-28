@@ -19,7 +19,7 @@ void main() {
   // Helper to tap a cell relative to the grid detector
   Future<void> tapCell(WidgetTester tester, int r, int c, int gridSize) async {
     final gridFinder = find.descendant(
-      of: find.byType(Listener),
+      of: find.byType(AspectRatio),
       matching: find.byType(GestureDetector),
     );
     // getRect applies ancestor transforms, so this stays correct when the

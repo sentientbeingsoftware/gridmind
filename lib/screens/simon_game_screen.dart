@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 import '../models/pattern_speed.dart';
-// If you decide to add audio, you'll need this:
-// import 'package:audioplayers/audioplayers.dart';
+import '../services/game_effects.dart';
 import '../services/app_persistence_service.dart';
 import 'base_game_screen.dart';
 import 'mixins/config_high_score_mixin.dart';
@@ -198,10 +197,7 @@ class _SimonGameScreenState extends State<SimonGameScreen> with ConfigHighScoreM
       _highlighted = index;
     });
 
-    // TODO: Add sound effects when audio is implemented
-    // if (playSound) {
-    //   _audioPlayer.play(AssetSource('sounds/note${index % 4}.wav'));
-    // }
+    if (playSound) GameEffects.instance.note(index);
 
     // Cancel any existing flash timer
     _flashTimer?.cancel();
