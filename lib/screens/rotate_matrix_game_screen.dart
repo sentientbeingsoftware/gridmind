@@ -445,7 +445,15 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
                 : Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.15), width: 1.0);
 
             rowChildren.add(
-              GestureDetector(
+              Semantics(
+                label: 'Row ${rowIndex + 1}, column ${colIndex + 1}, ${_getQuadrantLabel(cellQuadrant)}${isSelected ? ", selected" : ""}',
+                button: true,
+                excludeSemantics: true,
+                onTap: () {
+                  if (_isGameOver || _isGameWon) return;
+                  setState(() => _selectedQuadrant = cellQuadrant);
+                },
+                child: GestureDetector(
                 onTap: () {
                   if (_isGameOver || _isGameWon) return;
                   setState(() {
@@ -471,6 +479,7 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
                         : null,
                   ),
                 ),
+              ),
               ),
             );
 

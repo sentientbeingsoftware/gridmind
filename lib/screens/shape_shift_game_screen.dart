@@ -1,3 +1,4 @@
+import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../utils/grid_utils.dart';
@@ -403,7 +404,10 @@ class _ShapeShiftGameScreenState extends State<ShapeShiftGameScreen> with Config
               final color = _grid[r][c];
               final isSelected = _selectedRow == r && _selectedCol == c;
 
-              return GestureDetector(
+              return Semantics(
+label: 'Row ${r + 1}, column ${c + 1}, ${colorName(color)}${isSelected ? ", selected" : ""}',
+button: true,
+child: GestureDetector(
                 onTap: () => _onCellTap(r, c),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
@@ -424,7 +428,8 @@ class _ShapeShiftGameScreenState extends State<ShapeShiftGameScreen> with Config
                         )
                       : null,
                 ),
-              );
+              ),
+);
             },
           ),
         ),

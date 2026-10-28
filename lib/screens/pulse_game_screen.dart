@@ -117,7 +117,10 @@ class _PulseGameScreenState extends State<PulseGameScreen> with ConfigHighScoreM
       itemCount: _gridSize * _gridSize,
       itemBuilder: (context, index) {
         final isActive = index == _currentIndex;
-        return GestureDetector(
+        return Semantics(
+label: 'Row ${index ~/ _gridSize + 1}, column ${index % _gridSize + 1}${isActive ? ", lit" : ""}',
+button: true,
+child: GestureDetector(
           onTap: () => _handleTap(index),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -136,7 +139,8 @@ class _PulseGameScreenState extends State<PulseGameScreen> with ConfigHighScoreM
                   : [],
             ),
           ),
-        );
+        ),
+);
       },
     );
   }

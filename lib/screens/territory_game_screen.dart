@@ -268,7 +268,12 @@ class _TerritoryGameScreenState extends State<TerritoryGameScreen>
         final frontier = _isAdjacentToClaimed(idx);
         final rivalOwned = _rivalCells.contains(idx);
         final val = claimed ? _values[idx] : _shown[idx];
-        return GestureDetector(
+        return Semantics(
+label: idx == 0 ? 'Start cell' : rivalOwned ? 'Row ${idx ~/ widget.gridSize + 1}, column ${idx % widget.gridSize + 1}, taken by rival' : claimed ? 'Row ${idx ~/ widget.gridSize + 1}, column ${idx % widget.gridSize + 1}, claimed, value ${_values[idx]}' : 'Row ${idx ~/ widget.gridSize + 1}, column ${idx % widget.gridSize + 1}, value $val${frontier ? ', can claim' : ''}',
+button: true,
+onTap: () => _handleTap(idx),
+excludeSemantics: true,
+child: GestureDetector(
           onTap: () => _handleTap(idx),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -301,7 +306,8 @@ class _TerritoryGameScreenState extends State<TerritoryGameScreen>
               ),
             ),
           ),
-        );
+        ),
+);
       },
     );
   }

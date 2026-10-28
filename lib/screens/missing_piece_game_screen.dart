@@ -1,3 +1,4 @@
+import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../services/app_persistence_service.dart';
@@ -392,7 +393,12 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
                         }
                       }
 
-                      return GestureDetector(
+                      return Semantics(
+label: isHidden && !_showingPattern ? 'Missing piece ${index + 1}${hasAnswer ? ", answered" : ""}${isActive ? ", selected" : ""}' : 'Tile ${index + 1}',
+button: true,
+onTap: () => _handleCellTap(index),
+excludeSemantics: true,
+child: GestureDetector(
                         onTap: () => _handleCellTap(index),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -408,7 +414,8 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
                           ),
                           child: _buildCellContent(index, themeColor),
                         ),
-                      );
+                      ),
+);
                     },
                   ),
                 ),
@@ -453,7 +460,10 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
                       alignment: WrapAlignment.center,
                       children: List.generate(_palette.length, (idx) {
                         final colorVal = _palette[idx];
-                        return GestureDetector(
+                        return Semantics(
+label: 'Choice ${idx + 1}, ${colorName(colorVal)}',
+button: true,
+child: GestureDetector(
                           onTap: () => _selectChoiceValue(idx.toString()),
                           child: Container(
                             width: 50,
@@ -471,7 +481,8 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
                               ],
                             ),
                           ),
-                        );
+                        ),
+);
                       }),
                     ),
                 ],
