@@ -260,6 +260,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                   ? const NeverScrollableScrollPhysics()
                   : null,
               child: SizedBox(
+                width: double.infinity,
                 height: max(box.maxHeight, _kMinBodyHeight),
                 child: Column(
             children: [
