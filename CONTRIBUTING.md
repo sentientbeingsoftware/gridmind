@@ -39,7 +39,7 @@ Run them locally before you open the pull request.
 
 ## Pull requests
 
-1. Branch from `main`.
+1. Branch from `main`. `main` is protected by a ruleset: changes must go through a pull request and pass the `Test`, `Build Android, Linux, & Web` and `Build Windows` checks, and history stays linear (squash or rebase merge).
 2. Keep each pull request to one topic.
 3. Describe what changed and why, and link the related issue.
 4. Make sure `flutter analyze` and `flutter test` pass.
