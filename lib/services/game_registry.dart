@@ -1109,8 +1109,8 @@ class GameRegistry {
           label: 'Grid Size',
           defaultValue: 4.0,
           min: 3.0,
-          max: 6.0,
-          divisions: 3,
+          max: 10.0,
+          divisions: 7,
         ),
         SliderConfigOption(
           key: 'targetArea',
@@ -1136,8 +1136,8 @@ class GameRegistry {
           defaultValue: 'low',
           items: const [
             DropdownMenuItem(value: 'off', child: Text('Off')),
-            DropdownMenuItem(value: 'low', child: Text('Low (~10%)')),
-            DropdownMenuItem(value: 'high', child: Text('High (~20%)')),
+            DropdownMenuItem(value: 'low', child: Text('Low (~5%)')),
+            DropdownMenuItem(value: 'high', child: Text('High (~10%)')),
           ],
         ),
         SwitchConfigOption(key: 'rival', label: 'Rival (claims cells)', defaultValue: false),

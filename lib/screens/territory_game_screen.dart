@@ -79,7 +79,7 @@ class _TerritoryGameScreenState extends State<TerritoryGameScreen>
 
   void _reset({bool initial = false}) {
     final total = widget.gridSize * widget.gridSize;
-    final trapChance = switch (widget.traps) { 'low' => 0.1, 'high' => 0.2, _ => 0.0 };
+    final trapChance = switch (widget.traps) { 'low' => 0.05, 'high' => 0.1, _ => 0.0 };
     List<int> values;
     if (widget.testMode && widget.testValues != null && widget.testValues!.length == total) {
       values = List<int>.from(widget.testValues!);
@@ -291,7 +291,7 @@ class _TerritoryGameScreenState extends State<TerritoryGameScreen>
                 idx == 0 ? '★' : rivalOwned ? '' : '$val',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: widget.gridSize > 5 ? 16 : 20,
+                  fontSize: widget.gridSize > 8 ? 12 : widget.gridSize > 5 ? 16 : 20,
                   color: claimed
                       ? Colors.black87
                       : frontier
