@@ -561,8 +561,10 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       isGameInProgress: _foundWords.isNotEmpty && !_isGameOver && !_isGameWon,
       child: Column(
         children: [
-          // Word search board container
-          Padding(
+          // Word search board container. Flexible: in a wide, short window the
+          // square board shrinks to the height available instead of overflowing.
+          Flexible(
+            child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: AspectRatio(
               aspectRatio: 1.0,
@@ -668,6 +670,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                   },
                 ),
               ),
+            ),
             ),
           ),
           
