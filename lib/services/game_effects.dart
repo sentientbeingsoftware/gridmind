@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -17,7 +19,8 @@ class GameEffects {
 
   /// Test hook: set to false to skip the audio plugin entirely.
   @visibleForTesting
-  bool audioPluginAvailable = true;
+  // The plugin does not exist under flutter test; its async init errors escape try/catch.
+  bool audioPluginAvailable = !Platform.environment.containsKey('FLUTTER_TEST');
 
   Future<void> _load() async {
     if (_loaded) return;
