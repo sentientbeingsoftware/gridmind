@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/game_metadata.dart';
 import '../services/game_registry.dart';
 import '../theme/theme_controller.dart';
+import 'custom_palette_dialog.dart';
 import 'walkthrough_dialog.dart';
 import 'feedback_screen.dart';
 import '../services/app_persistence_service.dart';
@@ -326,6 +327,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               dense: true,
                               value: 'random',
                               title: Text('Random (different each game)'),
+                            ),
+                            TextButton.icon(
+                              icon: const Icon(Icons.edit, size: 18),
+                              label: const Text('Edit custom colors'),
+                              onPressed: () async {
+                                final edited = await showCustomPaletteEditor(ctx, _customPalette);
+                                if (edited == null || !ctx.mounted) return;
+                                modalState(() => _paletteType = 'custom');
+                                setState(() {
+                                  _customPalette = edited;
+                                  _paletteType = 'custom';
+                                });
+                                await _savePalette(rootContext: rootContext);
+                                if (ctx.mounted) Navigator.of(ctx).pop();
+                              },
                             ),
                           ],
                         ),
