@@ -142,5 +142,24 @@ void main() {
         expect(find.text('Puzzle solved!'), findsNothing, reason: 'size $size won on 1st move');
       }
     });
+
+    for (final size in [const Size(320, 568), const Size(360, 640)]) {
+      testWidgets('grid 10 and its arrows fit a ${size.width.toInt()}x${size.height.toInt()} phone without scrolling', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(const MaterialApp(
+          home: GravityShiftGameScreen(gridSize: 10, difficulty: 'medium', moveMode: 'zen'),
+        ));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final screen = Offset.zero & size;
+        for (final tip in ['Gravity up', 'Gravity down', 'Gravity left', 'Gravity right']) {
+          final r = tester.getRect(find.byTooltip(tip));
+          expect(screen.contains(r.bottomRight), isTrue, reason: '$tip off screen: $r');
+        }
+      });
+    }
   });
 }

@@ -547,45 +547,55 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
           _buildGridDisplay(_targetPattern, tileSize: (110.0 / widget.gridSize).clamp(9.0, 16.0)),
         ],
       ),
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildMainGrid((260.0 / widget.gridSize).clamp(24.0, 48.0)),
-              const SizedBox(height: 20),
-              Text(
-                _getQuadrantLabel(_selectedQuadrant),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: themeColor,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          // Each cell is tile + 4 margin; the board has 16 padding and a 12 quadrant gap.
+          // The control row (rotate buttons either side of the label) needs ~64.
+          const controlsHeight = 64.0;
+          final n = widget.gridSize;
+          final byHeight = (box.maxHeight - controlsHeight - 28) / n - 4;
+          final byWidth = (box.maxWidth - 28) / n - 4;
+          final tile = min(min(byHeight, byWidth), (260.0 / n).clamp(24.0, 48.0)).clamp(8.0, 48.0);
+          final canRotate = !(_isGameOver || _isGameWon);
+          return Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.rotate_left),
-                    onPressed: (_isGameOver || _isGameWon)
-                        ? null
-                        : () => _rotateQuadrant(_selectedQuadrant, false),
-                    iconSize: 32,
-                  ),
-                  const SizedBox(width: 32),
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.rotate_right),
-                    onPressed: (_isGameOver || _isGameWon)
-                        ? null
-                        : () => _rotateQuadrant(_selectedQuadrant, true),
-                    iconSize: 32,
+                  _buildMainGrid(tile),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton.filledTonal(
+                        icon: const Icon(Icons.rotate_left),
+                        tooltip: 'Rotate selected quadrant left',
+                        onPressed: canRotate ? () => _rotateQuadrant(_selectedQuadrant, false) : null,
+                        iconSize: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Text(
+                          _getQuadrantLabel(_selectedQuadrant),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: themeColor),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton.filledTonal(
+                        icon: const Icon(Icons.rotate_right),
+                        tooltip: 'Rotate selected quadrant right',
+                        onPressed: canRotate ? () => _rotateQuadrant(_selectedQuadrant, true) : null,
+                        iconSize: 32,
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
