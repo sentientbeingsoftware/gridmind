@@ -78,5 +78,65 @@ void main() {
       await gesture.up();
       await tester.pumpAndSettle();
     });
+
+    // 8x8 on a short phone: the screen scrolls, which used to steal vertical drags.
+    Future<(SemanticsHandle, Map<(int, int), int>)> openBoard(WidgetTester t) async {
+      t.view.physicalSize = const Size(360, 480);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      final handle = t.ensureSemantics();
+      await t.pumpWidget(const MaterialApp(
+        home: SumGridGameScreen(gridSize: 8, gameMode: 'classic', targetMode: 'fixed'),
+      ));
+      await t.pumpAndSettle();
+      final vals = <(int, int), int>{};
+      for (final w in t.widgetList<Semantics>(find.byType(Semantics))) {
+        final m = RegExp(r'^Row (\d+), column (\d+), (\d+)').firstMatch(w.properties.label ?? '');
+        if (m != null) vals[(int.parse(m[1]!) - 1, int.parse(m[2]!) - 1)] = int.parse(m[3]!);
+      }
+      return (handle, vals);
+    }
+
+    Offset centre(WidgetTester t, int r, int c) {
+      final g = t.getRect(find.byType(GridView));
+      return Offset(g.left + (c + 0.5) * g.width / 8, g.top + (r + 0.5) * g.height / 8);
+    }
+
+    int selected(WidgetTester t) => t.widgetList<Semantics>(find.byType(Semantics))
+        .where((w) => (w.properties.label ?? '').endsWith(', selected'))
+        .length;
+
+    testWidgets('vertical drag on the grid selects cells and does not scroll the screen', (t) async {
+      final (handle, _) = await openBoard(t);
+      final scroll = t.state<ScrollableState>(find.byType(Scrollable).first);
+      final before = scroll.position.pixels;
+      final g = await t.startGesture(centre(t, 0, 0));
+      await g.moveTo(centre(t, 1, 0));
+      await t.pump();
+      await g.moveTo(centre(t, 2, 0));
+      await t.pump();
+      expect(scroll.position.pixels, before, reason: 'page scrolled during the drag');
+      expect(selected(t), greaterThan(0));
+      await g.up();
+      handle.dispose();
+    });
+
+    testWidgets('tap selects a neighbour, tap the last cell again to deselect', (t) async {
+      final (handle, v) = await openBoard(t);
+      // Two neighbours whose sum stays under the target of 10, so nothing clears or scores.
+      final pair = [for (final e in v.entries) if (e.key.$2 < 7 && e.value + v[(e.key.$1, e.key.$2 + 1)]! < 10) e.key].first;
+      final a = pair, b = (pair.$1, pair.$2 + 1);
+      await t.tapAt(centre(t, a.$1, a.$2));
+      await t.pump();
+      expect(selected(t), 1);
+      await t.tapAt(centre(t, b.$1, b.$2));
+      await t.pump();
+      expect(selected(t), 2, reason: 'second tap should add the neighbour');
+      await t.tapAt(centre(t, b.$1, b.$2));
+      await t.pump();
+      expect(selected(t), 1, reason: 'tapping the last cell should deselect it');
+      handle.dispose();
+    });
   });
 }

@@ -1,4 +1,5 @@
 import '../utils/announce.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -186,6 +187,74 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
     }
   }
 
+  Point<int>? _pressCell;
+  bool _pressMoved = false;
+  bool _pressStartedSelection = false;
+
+  Point<int>? _cellAt(BuildContext gridContext, Offset global) {
+    final box = gridContext.findRenderObject() as RenderBox?;
+    if (box == null) return null;
+    final local = box.globalToLocal(global);
+    final c = (local.dx / (box.size.width / widget.gridSize)).floor();
+    final r = (local.dy / (box.size.height / widget.gridSize)).floor();
+    if (r < 0 || r >= widget.gridSize || c < 0 || c >= widget.gridSize) return null;
+    return Point(r, c);
+  }
+
+  void _pointerDown(BuildContext gridContext, Offset global) {
+    final cell = _cellAt(gridContext, global);
+    if (cell == null || _isGameOver || _isGameWon) return;
+    _pressCell = cell;
+    _pressMoved = false;
+    _pressStartedSelection = _selectedCells.isEmpty;
+    // With a tap-selection already open, wait to see whether this is a tap or a drag.
+    if (_pressStartedSelection) {
+      _handleCellTouchStart(cell.x, cell.y);
+    }
+  }
+
+  void _pointerMove(BuildContext gridContext, Offset global) {
+    final cell = _cellAt(gridContext, global);
+    final press = _pressCell;
+    if (cell == null || press == null) return;
+    if (!_pressMoved) {
+      if (cell == press) return;
+      _pressMoved = true;
+      // Dragging from a cell that is not the end of the open selection starts afresh.
+      if (!_pressStartedSelection && _selectedCells.last != press) {
+        _handleCellTouchEnd();
+        _handleCellTouchStart(press.x, press.y);
+      }
+    }
+    _handleCellTouchUpdate(cell.x, cell.y);
+  }
+
+  void _pointerUp({bool cancelled = false}) {
+    final cell = _pressCell;
+    if (cell == null) return;
+    _pressCell = null;
+    if (_pressMoved || cancelled) {
+      _handleCellTouchEnd(); // a drag ends the selection on release
+    } else if (!_pressStartedSelection) {
+      _tapSelect(cell);
+    } // else: a tap on an empty board leaves its cell selected for the next tap
+  }
+
+  /// Tap-to-select: a neighbour is added, the last cell is taken off again, and
+  /// any other cell starts over from there.
+  void _tapSelect(Point<int> cell) {
+    if (_selectedCells.last == cell) {
+      setState(() => _selectedCells.removeLast());
+      return;
+    }
+    final before = _selectedCells.length;
+    _handleCellTouchUpdate(cell.x, cell.y);
+    if (_selectedCells.isNotEmpty && _selectedCells.length == before) {
+      _handleCellTouchEnd();
+      _handleCellTouchStart(cell.x, cell.y);
+    }
+  }
+
   /// Screen-reader path: each activation adds a cell to the selection (or
   /// starts one), using the same rules as a drag. Activating the previous cell
   /// removes the last one.
@@ -362,46 +431,22 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
             ),
             child: Builder(
               builder: (gridContext) {
-                return GestureDetector(
-                  onPanStart: (details) {
-                    final RenderBox? rBox = gridContext.findRenderObject() as RenderBox?;
-                    if (rBox == null) return;
-                    final local = rBox.globalToLocal(details.globalPosition);
-                    final cellW = rBox.size.width / widget.gridSize;
-                    final cellH = rBox.size.height / widget.gridSize;
-                    final c = (local.dx / cellW).floor();
-                    final r = (local.dy / cellH).floor();
-                    if (r >= 0 && r < widget.gridSize && c >= 0 && c < widget.gridSize) {
-                      _handleCellTouchStart(r, c);
-                    }
+                // Eager recogniser claims the touch at once, so the screen's vertical scroll
+                // cannot steal an up/down drag; Listener then reads the raw pointers.
+                return RawGestureDetector(
+                  gestures: {
+                    EagerGestureRecognizer: GestureRecognizerFactoryWithHandlers<EagerGestureRecognizer>(
+                      EagerGestureRecognizer.new,
+                      (_) {},
+                    ),
                   },
-                  onPanUpdate: (details) {
-                    final RenderBox? rBox = gridContext.findRenderObject() as RenderBox?;
-                    if (rBox == null) return;
-                    final local = rBox.globalToLocal(details.globalPosition);
-                    final cellW = rBox.size.width / widget.gridSize;
-                    final cellH = rBox.size.height / widget.gridSize;
-                    final c = (local.dx / cellW).floor();
-                    final r = (local.dy / cellH).floor();
-                    if (r >= 0 && r < widget.gridSize && c >= 0 && c < widget.gridSize) {
-                      _handleCellTouchUpdate(r, c);
-                    }
-                  },
-                  onPanEnd: (_) => _handleCellTouchEnd(),
-                  onTapDown: (details) {
-                    final RenderBox? rBox = gridContext.findRenderObject() as RenderBox?;
-                    if (rBox == null) return;
-                    final local = rBox.globalToLocal(details.globalPosition);
-                    final cellW = rBox.size.width / widget.gridSize;
-                    final cellH = rBox.size.height / widget.gridSize;
-                    final c = (local.dx / cellW).floor();
-                    final r = (local.dy / cellH).floor();
-                    if (r >= 0 && r < widget.gridSize && c >= 0 && c < widget.gridSize) {
-                      _handleCellTouchStart(r, c);
-                    }
-                  },
-                  onTapUp: (_) => _handleCellTouchEnd(),
-                  child: GridView.builder(
+                  child: Listener(
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: (e) => _pointerDown(gridContext, e.position),
+                    onPointerMove: (e) => _pointerMove(gridContext, e.position),
+                    onPointerUp: (_) => _pointerUp(),
+                    onPointerCancel: (_) => _pointerUp(cancelled: true),
+                    child: GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: widget.gridSize,
@@ -464,6 +509,7 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
                         ),
                       ));
                     },
+                  ),
                   ),
                 );
               }
