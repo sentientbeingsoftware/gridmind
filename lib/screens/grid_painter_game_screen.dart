@@ -241,10 +241,6 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
       
       _isGameOver = false;
       _isGameWon = false;
-
-      if (_brushMode == BrushMode.draw) {
-        _grid[_brushRow][_brushCol] = true;
-      }
     });
   }
 
