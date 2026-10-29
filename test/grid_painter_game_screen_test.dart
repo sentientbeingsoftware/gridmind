@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:gridmind/screens/grid_painter_game_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('GridPainterGameScreen Widget Tests', () {
@@ -154,6 +155,23 @@ void main() {
       }
 
       expect(find.textContaining('Failed! Exceeded move limit'), findsOneWidget);
+    });
+
+    testWidgets('a new board starts with nothing painted, including the brush start tile', (tester) async {
+      SharedPreferences.setMockInitialValues({}); // _initializeGame reads saved prefs; without this it never finishes
+      final handle = tester.ensureSemantics();
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(const MaterialApp(
+        home: GridPainterGameScreen(gridSize: 4, gameMode: 'show', moveMode: 'zen'),
+      ));
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(RegExp(r'^Row 1, column 1, empty, brush here')), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'painted')), findsNothing);
+      handle.dispose();
     });
   });
 }
