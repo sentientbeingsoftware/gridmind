@@ -636,8 +636,8 @@ class GameRegistry {
           label: 'Grid Size',
           defaultValue: 4.0,
           min: 4.0,
-          max: 8.0,
-          divisions: 2,
+          max: 12.0,
+          divisions: 4,
         ),
         DropdownConfigOption<String>(
           key: 'symmetryType',
