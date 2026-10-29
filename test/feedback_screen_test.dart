@@ -76,6 +76,16 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
+    test('submitFeedback explains a 429 rate limit in plain words', () async {
+      final service = FeedbackService(
+        client: MockClient((_) async => http.Response(jsonEncode({'detail': 'Rate limit exceeded'}), 429, headers: {'retry-after': '3600'})),
+      );
+      final result = await service.submitFeedback(title: 'x', body: 'y', feedbackType: 'Bug Report');
+      expect(result.isSuccess, isFalse);
+      expect(result.errorMessage, contains('Too many feedback messages'));
+      expect(result.errorMessage, isNot(contains('429')));
+    });
+
     test('submitFeedback returns failure on 401 Unauthorized', () async {
       // Arrange
       final mockClient = MockClient((request) async {

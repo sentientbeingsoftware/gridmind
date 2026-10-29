@@ -166,6 +166,12 @@ class FeedbackService {
           isSuccess: false,
           errorMessage: msg,
         );
+      } else if (response.statusCode == 429) {
+        // The server allows 5 feedback messages per hour per IP and 50 a day overall.
+        return FeedbackResponse(
+          isSuccess: false,
+          errorMessage: 'Too many feedback messages right now. Your text is still here; please try again in a while.',
+        );
       } else if (response.statusCode == 502) {
         return FeedbackResponse(
           isSuccess: false,
