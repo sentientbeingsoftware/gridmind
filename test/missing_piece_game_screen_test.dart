@@ -99,5 +99,30 @@ void main() {
       expect(find.text('Game Over!'), findsOneWidget);
       expect(find.text('Score achieved: 0 points!'), findsOneWidget);
     });
+
+    testWidgets('game over reveals the missing value instead of "?"', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: MissingPieceGameScreen(
+            gridSize: 3,
+            contentType: 'numbers',
+            initialHiddenCount: 1,
+            lives: 1,
+            testMode: true,
+            testValues: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+            testHiddenIndices: [4],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('?'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(ElevatedButton, '1'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('?'), findsNothing);
+      final shown = tester.widget<Text>(find.text('5'));
+      expect(shown.style?.color, Colors.redAccent);
+    });
   });
 }
