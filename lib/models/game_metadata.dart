@@ -26,6 +26,10 @@ class SliderConfigOption extends ConfigOption<double> {
   final int? divisions;
   final String Function(double)? labelFormatter;
 
+  /// Optional upper limit that depends on the other settings (e.g. words that fit
+  /// the grid). The slider and [GameMetadata.resolveConfig] both honour it.
+  final double Function(Map<String, dynamic> config)? maxFor;
+
   SliderConfigOption({
     required super.key,
     required super.label,
@@ -34,7 +38,19 @@ class SliderConfigOption extends ConfigOption<double> {
     required this.max,
     this.divisions,
     this.labelFormatter,
+    this.maxFor,
   });
+
+  /// The same slider with its top end lowered to [newMax] (one step per whole number).
+  SliderConfigOption withMax(double newMax) => SliderConfigOption(
+        key: key,
+        label: label,
+        defaultValue: defaultValue,
+        min: min,
+        max: newMax,
+        divisions: divisions == null ? null : (newMax - min).round().clamp(1, 1000),
+        labelFormatter: labelFormatter,
+      );
 
   @override
   Widget buildControl(BuildContext context, double currentValue, ValueChanged<double> onChanged) {
@@ -146,10 +162,19 @@ class GameMetadata {
   /// Saved setup values merged over defaults, decoded to their real types.
   /// This is the exact config used for score keys, so setup, game and
   /// settings screens must all build it through here.
-  Map<String, dynamic> resolveConfig(Map<String, dynamic>? saved) => {
-        for (final o in configOptions)
-          o.key: saved?[o.key] == null ? o.defaultValue : o.decode(saved![o.key]),
-      };
+  Map<String, dynamic> resolveConfig(Map<String, dynamic>? saved) {
+    final config = {
+      for (final o in configOptions)
+        o.key: saved?[o.key] == null ? o.defaultValue : o.decode(saved![o.key]),
+    };
+    for (final o in configOptions) {
+      if (o is SliderConfigOption && o.maxFor != null) {
+        final cap = o.maxFor!(config).clamp(o.min, o.max);
+        if ((config[o.key] as double) > cap) config[o.key] = cap;
+      }
+    }
+    return config;
+  }
 
   GameMetadata({
     required this.id,

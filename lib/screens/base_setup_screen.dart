@@ -68,6 +68,7 @@ class _BaseSetupScreenState extends State<BaseSetupScreen> {
   Future<void> _onOptionChanged(String key, dynamic value) async {
     setState(() {
       _currentConfig[key] = value;
+      _currentConfig = widget.game.resolveConfig(_currentConfig); // re-apply dependent caps
     });
     await _persistence.setLastConfig(widget.game.id, _currentConfig);
     if (!mounted) return;
@@ -264,7 +265,10 @@ class _BaseSetupScreenState extends State<BaseSetupScreen> {
                     const Divider(height: 1),
                     ...widget.game.configOptions.map((option) {
                       final currentVal = _currentConfig[option.key];
-                      return option.buildControl(
+                      final shown = option is SliderConfigOption && option.maxFor != null
+                          ? option.withMax(option.maxFor!(_currentConfig).clamp(option.min, option.max))
+                          : option;
+                      return shown.buildControl(
                         context, 
                         currentVal, 
                         (newVal) => _onOptionChanged(option.key, newVal),
