@@ -348,7 +348,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
       value: value,
-      title: Row(
+      // Wrap: title + 8 swatches are wider than the 256 px dialog on phones.
+      title: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: 4,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(width: 10),
