@@ -412,52 +412,45 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
           _buildGrid(_targetPattern, tileSize: (110.0 / widget.gridSize).clamp(9.0, 16.0)),
         ],
       ),
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildGrid(_grid, tileSize: (260.0 / widget.gridSize).clamp(24.0, 48.0)),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          // Board padding 8 + 2 per cell margin; one row of arrows needs ~56.
+          const controlsHeight = 56.0;
+          final n = widget.gridSize;
+          final byHeight = (box.maxHeight - controlsHeight - 8) / n - 2;
+          final byWidth = (box.maxWidth - 8) / n - 2;
+          final tile = min(min(byHeight, byWidth), (260.0 / n).clamp(24.0, 48.0)).clamp(8.0, 48.0);
+          final canMove = !(_isGameOver || _isGameWon);
+          Widget arrow(IconData icon, String tip, int dir) => IconButton.filledTonal(
+                icon: Icon(icon),
+                tooltip: tip,
+                onPressed: canMove ? () => _applyGravityDirection(dir) : null,
+                iconSize: 28,
+              );
+          return Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.arrow_upward),
-                    onPressed: (_isGameOver || _isGameWon) ? null : () => _applyGravityDirection(0),
-                    iconSize: 28,
+                  _buildGrid(_grid, tileSize: tile),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      arrow(Icons.arrow_back, 'Gravity left', 2),
+                      const SizedBox(width: 12),
+                      arrow(Icons.arrow_upward, 'Gravity up', 0),
+                      const SizedBox(width: 12),
+                      arrow(Icons.arrow_downward, 'Gravity down', 1),
+                      const SizedBox(width: 12),
+                      arrow(Icons.arrow_forward, 'Gravity right', 3),
+                    ],
                   ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: (_isGameOver || _isGameWon) ? null : () => _applyGravityDirection(2),
-                    iconSize: 28,
-                  ),
-                  const SizedBox(width: 24),
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.arrow_forward),
-                    onPressed: (_isGameOver || _isGameWon) ? null : () => _applyGravityDirection(3),
-                    iconSize: 28,
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton.filledTonal(
-                    icon: const Icon(Icons.arrow_downward),
-                    onPressed: (_isGameOver || _isGameWon) ? null : () => _applyGravityDirection(1),
-                    iconSize: 28,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

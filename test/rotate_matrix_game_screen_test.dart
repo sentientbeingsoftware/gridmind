@@ -153,5 +153,28 @@ void main() {
         expect(find.text('Puzzle solved!'), findsNothing, reason: 'size $size won on 1st move');
       }
     });
+
+    for (final size in [const Size(320, 568), const Size(360, 640)]) {
+      testWidgets('grid 10 and its rotate buttons fit a ${size.width.toInt()}x${size.height.toInt()} phone without scrolling', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(const MaterialApp(
+          home: RotateMatrixGameScreen(gridSize: 10, difficulty: 'medium', moveMode: 'zen'),
+        ));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        final screen = Offset.zero & size;
+        final left = tester.getRect(find.byIcon(Icons.rotate_left));
+        final right = tester.getRect(find.byIcon(Icons.rotate_right));
+        expect(screen.contains(left.bottomRight), isTrue, reason: 'left button off screen: $left');
+        expect(screen.contains(right.bottomRight), isTrue, reason: 'right button off screen: $right');
+        // The board sits above the buttons and starts on screen.
+        final board = tester.getRect(find.byType(GestureDetector).first);
+        expect(board.top, greaterThanOrEqualTo(0));
+        expect(board.bottom, lessThanOrEqualTo(left.top + 1));
+      });
+    }
   });
 }
