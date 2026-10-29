@@ -575,7 +575,8 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
       return true;
     }
 
-    return false;
+    // T, L and + shapes: the swap may have completed a run that is not through [pos].
+    return _findJoinedRuns().contains(pos);
   }
 
   void _swapBlocks(Point<int> pos1, Point<int> pos2) {
@@ -744,8 +745,46 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
         }
       }
     }
+    matchedPositions.addAll(_findJoinedRuns());
     // Remove duplicates efficiently
     return matchedPositions.toSet().toList();
+  }
+
+  /// Horizontal and vertical runs of 3+ that cross (T, L, +) join into one
+  /// shape, which matches when it has at least [_minMatch] distinct cells.
+  List<Point<int>> _findJoinedRuns() {
+    if (_minMatch <= 3) return const []; // plain runs already match
+    final horizontalRuns = <Set<Point<int>>>[];
+    final verticalRuns = <Set<Point<int>>>[];
+    for (final horizontal in [true, false]) {
+      for (int a = 0; a < _gridSize; a++) {
+        Point<int> pt(int b) => horizontal ? Point(a, b) : Point(b, a);
+        Block? blk(int b) => _grid[pt(b).x][pt(b).y];
+        int b = 0;
+        while (b < _gridSize) {
+          final first = blk(b);
+          if (first == null || first.isEmpty) {
+            b++;
+            continue;
+          }
+          int e = b + 1;
+          while (e < _gridSize && blk(e) != null && !blk(e)!.isEmpty && blk(e)!.color == first.color) {
+            e++;
+          }
+          if (e - b >= 3) (horizontal ? horizontalRuns : verticalRuns).add({for (int i = b; i < e; i++) pt(i)});
+          b = e;
+        }
+      }
+    }
+    final joined = <Point<int>>[];
+    for (final h in horizontalRuns) {
+      for (final v in verticalRuns) {
+        if (h.intersection(v).isEmpty) continue; // sharing a cell means same colour
+        final shape = h.union(v);
+        if (shape.length >= _minMatch) joined.addAll(shape);
+      }
+    }
+    return joined;
   }
 
   void _clearMarkedBlocks() {

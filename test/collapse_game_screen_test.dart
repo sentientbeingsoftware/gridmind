@@ -82,5 +82,49 @@ void main() {
       // 4 blocks cleared * 10 pts = at least 40 score, 9 moves left.
       expect(find.text('Target Reached in 1 moves!'), findsOneWidget);
     });
+
+    testWidgets('T shape of 3+3 sharing a tile matches at minMatchCount 5', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      // Dragging red (2,3) left into (2,2) completes a T: bar (0,1)-(0,3), stem (0,2)-(2,2).
+      // Neither run alone reaches 5.
+      const r = Colors.red;
+      const b = Colors.blue;
+      const g = Colors.green;
+      const y = Colors.yellow;
+      const o = Colors.orange;
+      const p = Colors.purple;
+      final colors = <Color>[
+        b, r, r, r, g,
+        g, y, r, o, p,
+        o, p, b, r, y,
+        y, o, g, p, b,
+        p, g, y, o, g,
+      ];
+      final level = CollapseLevel(
+        name: 'Test T',
+        levelNumber: 0,
+        gridSize: 5,
+        mechanic: CollapseMechanic.fromTop,
+        targetScore: 50,
+        availableColors: const [b, g, y, o, p],
+        minMatchCount: 5,
+        moves: 10,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CollapseGameScreen(level: level, testMode: true, skipInitialDelay: true, testColors: colors),
+        ),
+      );
+      await tester.pump();
+
+      await tester.drag(find.byType(GestureDetector).at(13), const Offset(-120, 0));
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+
+      expect(find.text('Target Reached in 1 moves!'), findsOneWidget);
+    });
   });
 }
