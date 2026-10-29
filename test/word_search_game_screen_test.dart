@@ -137,5 +137,23 @@ void main() {
       // Words found goes back to 0/2
       expect(find.text('0/2'), findsOneWidget);
     });
+
+    testWidgets('crowded boards still show a grid and words (8x8 with 11 words, 6x6 with 20)', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      for (final (size, words) in [(8, 11), (8, 11), (8, 11), (8, 11), (6, 20), (6, 20), (7, 15), (7, 15)]) {
+        await tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+            body: WordSearchGameScreen(gridSize: size, wordCount: words, moveMode: 'challenge', category: 'Random'),
+          ),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.byType(Chip), findsWidgets, reason: '$size x $size with $words words: no words listed');
+        expect(tester.widgetList<Chip>(find.byType(Chip)).length, lessThanOrEqualTo(words));
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
   });
 }

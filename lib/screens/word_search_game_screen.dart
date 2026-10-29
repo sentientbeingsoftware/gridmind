@@ -125,7 +125,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       attempts++;
     }
 
-    _timeLimit = widget.gridSize * 15 + widget.wordCount * 10;
+    _timeLimit = widget.gridSize * 15 + _targetWords.length * 10;
     _timeLeft = _timeLimit;
     _hintsUsed = 0;
     _hintCell = null;
@@ -205,9 +205,8 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       wordsSource.shuffle();
     }
 
-    final selectedWords = wordsSource.take(widget.wordCount).toList();
-    if (selectedWords.isEmpty) {
-      selectedWords.add('GRID');
+    if (wordsSource.isEmpty) {
+      wordsSource.add('GRID');
     }
 
     final directions = [
@@ -221,10 +220,12 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       const Point(-1, 1),  // NE
     ];
 
-    for (int wordIdx = 0; wordIdx < selectedWords.length; wordIdx++) {
-      final word = selectedWords[wordIdx].toUpperCase();
-      bool placed = false;
-
+    // Walk the whole pool and skip words that will not fit, until wordCount are placed.
+    // A crowded board then ends up with fewer words instead of failing outright.
+    for (final candidate in wordsSource) {
+      if (placements.length >= widget.wordCount) break;
+      final wordIdx = placements.length;
+      final word = candidate.toUpperCase();
       // Try random starting positions and directions
       for (int attempt = 0; attempt < 250; attempt++) {
         final startR = _rand.nextInt(size);
@@ -238,15 +239,13 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
             cells: cells,
             color: _getWordColor(wordIdx),
           ));
-          placed = true;
           break;
         }
       }
 
-      if (!placed) {
-        return false;
-      }
+      // if no spot was found the word is left out and the next one is tried
     }
+    if (placements.isEmpty) return false;
 
     // Fill empty cells with random letters
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -260,7 +259,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
 
     _grid = grid;
     _placedWords = placements;
-    _targetWords = selectedWords.map((w) => w.toUpperCase()).toList();
+    _targetWords = placements.map((p) => p.word).toList();
     return true;
   }
 
