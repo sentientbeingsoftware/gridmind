@@ -26,7 +26,10 @@ A match-3 style block clearing game with customizable mechanics.
 A pathfinding puzzle game where players navigate a route from start to finish.
 - **Solvability check**: Real-time BFS path solver that guarantees a valid solution and draws optional guide lines.
 - **Interactive routing**: Intuitive drag gestures and tap controls to draw and undo routes.
-- **Diverse obstacles**: Dynamic board features including blockers, directional one-way walls, and power-ups.
+- **Winding boards**: obstacles are placed where they lengthen the shortest route the most, so a high Obstacle Density makes the path twist instead of leaving an open field.
+- **One-Way Paths**: purple arrow squares can only be entered along their arrow. When enabled, at least one sits on the only way to the end, so you must use one; the rest are decoys. Power-ups never open a way around it.
+- **Power-ups**: stepping on one clears the obstacles in the 3x3 around it.
+- **In-game help**: the ? button explains the rules.
 
 ### 🔢 Sum Grid
 An arithmetic grid puzzle where players select adjacent cells that add up to target numbers.
