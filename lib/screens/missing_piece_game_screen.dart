@@ -277,6 +277,24 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
               ),
             );
           }
+        } else if (_isGameOver) {
+          // Reveal what was missing, in red, so the player sees the answer.
+          if (widget.contentType == 'numbers') {
+            return Center(
+              child: Text(
+                val,
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.redAccent),
+              ),
+            );
+          }
+          return Container(
+            margin: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: _getColorFromValue(val),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.redAccent, width: 3),
+            ),
+          );
         } else {
           final isActive = _activeHiddenIndex == idx;
           return Center(
