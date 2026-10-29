@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:gridmind/screens/mirror_match_game_screen.dart';
+import 'package:gridmind/models/game_metadata.dart';
+import 'package:gridmind/services/game_registry.dart';
 
 void main() {
   group('MirrorMatchGameScreen Widget Tests', () {
@@ -137,6 +139,27 @@ void main() {
       }
 
       expect(find.textContaining('Failed! Exceeded move limit'), findsOneWidget);
+    });
+
+    for (final n in [10, 12]) {
+      testWidgets('grid size $n fits a 360x640 phone without overflow', (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(360, 640);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(MaterialApp(
+          home: MirrorMatchGameScreen(gridSize: n, symmetryType: 'vertical', moveMode: 'zen'),
+        ));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byType(GridView), findsOneWidget);
+      });
+    }
+
+    test('setup slider offers sizes 4 to 12 in steps of 2', () {
+      final game = GameRegistry.games.firstWhere((g) => g.id == 'mirror_match');
+      final o = game.configOptions.firstWhere((o) => o.key == 'gridSize') as SliderConfigOption;
+      expect((o.min, o.max, o.divisions), (4.0, 12.0, 4));
     });
   });
 }
