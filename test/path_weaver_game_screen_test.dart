@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:gridmind/screens/path_weaver_game_screen.dart';
@@ -282,5 +283,100 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Path Weaver'), findsOneWidget);
+  });
+
+  // --- generator: winding maps and a one-way square that cannot be avoided ---
+  List<List<PathCell>> newGrid(int n) {
+    final g = List.generate(n, (_) => List.generate(n, (_) => PathCell()));
+    g[0][0].isStart = true;
+    g[n - 1][n - 1].isEnd = true;
+    return g;
+  }
+
+  // Shortest length from corner to corner, or null. [canEnter] decides each step.
+  int? shortest(List<List<PathCell>> g, bool Function(int fromR, int fromC, int r, int c) canEnter) {
+    final n = g.length;
+    final dist = {const Point(0, 0): 0};
+    final q = Queue<Point<int>>()..add(const Point(0, 0));
+    while (q.isNotEmpty) {
+      final p = q.removeFirst();
+      if (p.x == n - 1 && p.y == n - 1) return dist[p];
+      for (final d in const [Point(1, 0), Point(-1, 0), Point(0, 1), Point(0, -1)]) {
+        final r = p.x + d.x, c = p.y + d.y;
+        if (r < 0 || r >= n || c < 0 || c >= n || dist.containsKey(Point(r, c)) || !canEnter(p.x, p.y, r, c)) continue;
+        dist[Point(r, c)] = dist[p]! + 1;
+        q.add(Point(r, c));
+      }
+    }
+    return null;
+  }
+
+  bool oneWayOk(List<List<PathCell>> g, int fr, int fc, int r, int c) {
+    final cell = g[r][c];
+    if (cell.isOneWay && cell.oneWayDirection != null) {
+      return Offset((r - fr).toDouble(), (c - fc).toDouble()) == cell.oneWayDirection;
+    }
+    return true;
+  }
+
+  test('every generated board is solvable, and with One-Way Paths a one-way square is unavoidable', () {
+    final rand = Random(11);
+    for (final n in [5, 7, 9, 12]) {
+      for (final density in [0.0, 0.15, 0.4]) {
+        for (final powerUps in [false, true]) {
+          for (var i = 0; i < 25; i++) {
+            final g = newGrid(n);
+            layoutPathWeaverGrid(g, obstacleDensity: density, oneWayPaths: true, powerUps: powerUps, rand: rand);
+            final why = 'n=$n density=$density powerUps=$powerUps';
+            // The game's own rules (obstacles block, one-ways only along their arrow): reachable.
+            expect(shortest(g, (fr, fc, r, c) => !g[r][c].isObstacle && oneWayOk(g, fr, fc, r, c)), isNotNull, reason: 'unsolvable: $why');
+            // Treat one-way squares as walls and let every power-up clear its 3x3: still no way through.
+            bool nearPowerUp(int r, int c) => [
+                  for (var a = -1; a <= 1; a++)
+                    for (var b = -1; b <= 1; b++)
+                      if (r + a >= 0 && r + a < n && c + b >= 0 && c + b < n && g[r + a][c + b].isPowerUp) 1
+                ].isNotEmpty;
+            final avoidable = shortest(g, (fr, fc, r, c) => !g[r][c].isOneWay && (!g[r][c].isObstacle || nearPowerUp(r, c)));
+            expect(avoidable, isNull, reason: 'a one-way square can be avoided: $why');
+          }
+        }
+      }
+    }
+  });
+
+  test('without One-Way Paths nothing is one-way and the board is still solvable', () {
+    final rand = Random(5);
+    for (var i = 0; i < 40; i++) {
+      final g = newGrid(8);
+      layoutPathWeaverGrid(g, obstacleDensity: 0.4, oneWayPaths: false, powerUps: true, rand: rand);
+      expect(g.expand((row) => row).any((c) => c.isOneWay), isFalse);
+      expect(shortest(g, (fr, fc, r, c) => !g[r][c].isObstacle), isNotNull);
+    }
+  });
+
+  test('at 40% density the route is much longer than the straight line (maps are no longer open)', () {
+    final rand = Random(3);
+    for (final n in [7, 9, 12]) {
+      var total = 0.0;
+      const boards = 20;
+      for (var i = 0; i < boards; i++) {
+        final g = newGrid(n);
+        layoutPathWeaverGrid(g, obstacleDensity: 0.4, oneWayPaths: false, powerUps: false, rand: rand);
+        total += shortest(g, (fr, fc, r, c) => !g[r][c].isObstacle)! / (2 * n - 2);
+      }
+      // Random obstacles gave 1.02-1.04 here (almost always a straight staircase).
+      expect(total / boards, greaterThan(1.4), reason: 'n=$n');
+    }
+  });
+
+  testWidgets('help button explains one-way paths', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: PathWeaverGameScreen(gridSize: 5, obstacleDensity: 0.2, oneWayPaths: true, powerUps: true, testMode: true),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.help_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('How to Play Path Weaver'), findsOneWidget);
+    expect(find.textContaining('you must use one'), findsOneWidget);
   });
 }
