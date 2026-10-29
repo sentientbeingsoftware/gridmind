@@ -5,6 +5,72 @@ import '../services/app_persistence_service.dart';
 import 'mixins/config_high_score_mixin.dart';
 import 'base_game_screen.dart';
 
+/// Largest group of orthogonally connected same-colour tiles.
+@visibleForTesting
+int largestCluster(List<List<Color>> g) {
+  final n = g.length;
+  final seen = {for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) Point(r, c): false};
+  var best = 0;
+  for (final start in seen.keys.toList()) {
+    if (seen[start]!) continue;
+    final stack = [start];
+    seen[start] = true;
+    var size = 0;
+    while (stack.isNotEmpty) {
+      final p = stack.removeLast();
+      size++;
+      for (final q in [Point(p.x + 1, p.y), Point(p.x - 1, p.y), Point(p.x, p.y + 1), Point(p.x, p.y - 1)]) {
+        if (seen[q] == false && g[q.x][q.y] == g[p.x][p.y]) {
+          seen[q] = true;
+          stack.add(q);
+        }
+      }
+    }
+    best = max(best, size);
+  }
+  return best;
+}
+
+/// A board that can always be won: grow a [target]-tile cluster, fill the rest at
+/// random, then scramble with [swapCount] swaps. Undoing them in reverse is a solution.
+/// Random fill alone is often unwinnable (6x6 with 4+ colours: most boards have no
+/// colour with enough tiles).
+@visibleForTesting
+({List<List<Color>> grid, List<(Point<int>, Point<int>)> swaps}) makeWinnableCluster(
+    int n, List<Color> palette, int target, int swapCount, Random rand) {
+  late List<List<Color>> grid;
+  late List<(Point<int>, Point<int>)> swaps;
+  // Retry until the scramble really leaves the board un-won; the cap only guards a loop.
+  for (var attempt = 0; attempt < 200; attempt++) {
+    // The cluster colour appears only in the cluster, so a scramble that splits it
+    // always leaves the board un-won.
+    final win = palette[rand.nextInt(palette.length)];
+    final others = palette.where((c) => c != win).toList();
+    grid = List.generate(n, (_) => List.generate(n, (_) => others[rand.nextInt(others.length)]));
+    final blob = {Point(rand.nextInt(n), rand.nextInt(n))};
+    while (blob.length < target) {
+      final p = blob.elementAt(rand.nextInt(blob.length));
+      final q = [Point(p.x + 1, p.y), Point(p.x - 1, p.y), Point(p.x, p.y + 1), Point(p.x, p.y - 1)][rand.nextInt(4)];
+      if (q.x >= 0 && q.x < n && q.y >= 0 && q.y < n) blob.add(q);
+    }
+    for (final p in blob) {
+      grid[p.x][p.y] = win;
+    }
+    swaps = [];
+    for (var tries = 0; swaps.length < swapCount && tries < 500; tries++) {
+      final a = Point(rand.nextInt(n), rand.nextInt(n));
+      final b = rand.nextBool() ? Point(a.x + 1, a.y) : Point(a.x, a.y + 1);
+      if (b.x >= n || b.y >= n || grid[a.x][a.y] == grid[b.x][b.y]) continue;
+      final t = grid[a.x][a.y];
+      grid[a.x][a.y] = grid[b.x][b.y];
+      grid[b.x][b.y] = t;
+      swaps.add((a, b));
+    }
+    if (largestCluster(grid) < target) break;
+  }
+  return (grid: grid, swaps: swaps);
+}
+
 /// Cluster Game
 ///
 /// A connected-color matching puzzle. Players swap adjacent tiles to build the
@@ -75,6 +141,9 @@ class _ClusterGameScreenState extends State<ClusterGameScreen> with ConfigHighSc
     final stored = await loadBestScore();
     if (!mounted) return;
 
+    // Target cluster size: 40% of the board.
+    final target = (widget.gridSize * widget.gridSize * 0.4).round();
+
     // Initial grid setup
     List<List<Color>> grid;
     if (widget.testMode && widget.testGrid != null) {
@@ -83,14 +152,8 @@ class _ClusterGameScreenState extends State<ClusterGameScreen> with ConfigHighSc
         (r) => List<Color>.from(widget.testGrid![r]),
       );
     } else {
-      grid = List.generate(
-        widget.gridSize,
-        (_) => List.generate(widget.gridSize, (_) => palette[_rand.nextInt(palette.length)]),
-      );
+      grid = makeWinnableCluster(widget.gridSize, palette, target, widget.gridSize * 3 ~/ 2, _rand).grid;
     }
-
-    // Set target cluster size (e.g. 40% of grid size squared)
-    final target = (widget.gridSize * widget.gridSize * 0.4).round();
 
     setState(() {
       _grid = grid;
