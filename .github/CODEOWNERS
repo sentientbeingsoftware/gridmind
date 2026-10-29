@@ -1,0 +1,3 @@
+# Review required from the owner on CI, release and Android config.
+/.github/ @sentientbeingsoftware
+/android/ @sentientbeingsoftware
