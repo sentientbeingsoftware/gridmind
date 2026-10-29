@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/screens/cluster_game_screen.dart';
@@ -129,6 +130,28 @@ void main() {
       // Max cluster should now be 4, triggering victory
       expect(find.text('4/4'), findsOneWidget);
       expect(find.text('Victory! Target cluster reached.'), findsOneWidget);
+    });
+
+    test('every generated board can be won by undoing the scramble, and does not start won', () {
+      final rand = Random(7);
+      const palette = [Colors.red, Colors.blue, Colors.green, Colors.orange, Colors.purple];
+      for (final n in [4, 5, 6]) {
+        final target = (n * n * 0.4).round();
+        for (final k in [2, 3, 4, 5]) {
+          for (var i = 0; i < 100; i++) {
+            final b = makeWinnableCluster(n, palette.take(k).toList(), target, n * 3 ~/ 2, rand);
+            expect(largestCluster(b.grid), lessThan(target), reason: '$n x $n, $k colours starts won');
+            final g = [for (final row in b.grid) [...row]];
+            for (final (a, c) in b.swaps.reversed) {
+              final t = g[a.x][a.y];
+              g[a.x][a.y] = g[c.x][c.y];
+              g[c.x][c.y] = t;
+            }
+            expect(largestCluster(g), greaterThanOrEqualTo(target), reason: '$n x $n, $k colours not solvable');
+            expect(b.swaps.length, lessThanOrEqualTo(n * 3));
+          }
+        }
+      }
     });
   });
 }
