@@ -1,3 +1,4 @@
+import 'settings_screen.dart';
 import '../services/game_effects.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -442,6 +443,14 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                 },
               ),
             ...?widget.appBarActions,
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: 'Settings',
+              // A pushed route keeps this screen's state, so the game resumes where it was.
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+            ),
           ],
         ),
         body: SafeArea(

@@ -23,4 +23,16 @@ void main() {
       expect((left + right) / 2, closeTo(180, 2)); // button row centred
     });
   }
+
+  testWidgets('game app bar opens Settings and returns to the same game', (t) async {
+    await t.pumpWidget(MaterialApp(
+      home: BaseGameScreen(title: 'T', onReset: () {}, child: const SizedBox(key: Key('board'))),
+    ));
+    await t.tap(find.byTooltip('Settings'));
+    await t.pumpAndSettle();
+    expect(find.text('Background Music'), findsOneWidget);
+    await t.pageBack();
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('board')), findsOneWidget);
+  });
 }
