@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
@@ -81,6 +82,7 @@ class _GridRunnerGameScreenState extends State<GridRunnerGameScreen> with Config
     if (_isGameOver || _isGameWon) return;
 
     _timer = Timer.periodic(Duration(milliseconds: _getSpeedMs()), (timer) {
+      if (GamePause.isPaused) return;
       if (_direction.x == 0 && _direction.y == 0) return; // Wait for first input
       _tick();
     });

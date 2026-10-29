@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'dart:async';
@@ -173,6 +174,7 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
         timer.cancel();
         return;
       }
+      if (GamePause.isPaused) return;
 
       bool timeExpired = false;
       setState(() {
@@ -198,6 +200,7 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
           timer.cancel();
           return;
         }
+        if (GamePause.isPaused) return;
         _teleportActiveNumbers();
       });
     }

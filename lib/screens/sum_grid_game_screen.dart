@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import '../utils/announce.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/semantics.dart';
@@ -107,6 +108,7 @@ class _SumGridGameScreenState extends State<SumGridGameScreen> with ConfigHighSc
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (GamePause.isPaused) return;
       if (_secondsLeft > 1) {
         setState(() {
           _secondsLeft--;

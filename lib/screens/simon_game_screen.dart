@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -232,6 +233,7 @@ class _SimonGameScreenState extends State<SimonGameScreen> with ConfigHighScoreM
 
     // Flash each button in the sequence
     for (int indexInSequence in _sequence) {
+      await GamePause.hold();
       if (!mounted) return;
       await _flashSquare(
         indexInSequence,

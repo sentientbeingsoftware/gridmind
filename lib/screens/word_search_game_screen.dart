@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import '../utils/announce.dart';
 import 'dart:async';
 import 'dart:math';
@@ -152,6 +153,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
         timer.cancel();
         return;
       }
+      if (GamePause.isPaused) return;
       setState(() {
         if (_timeLeft > 0) {
           _timeLeft--;

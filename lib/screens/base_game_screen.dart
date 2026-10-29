@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import 'settings_screen.dart';
 import '../services/game_effects.dart';
 import 'dart:math';
@@ -113,6 +114,18 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     _stopwatch.stop();
     _logQuitEvent();
     super.dispose();
+  }
+
+  Future<void> _openSettings() async {
+    // The game stays mounted underneath; hold its timers and the session clock meanwhile.
+    GamePause.paused.value = true;
+    _stopwatch.stop();
+    try {
+      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+    } finally {
+      GamePause.paused.value = false;
+      if (mounted) _stopwatch.start();
+    }
   }
 
   void _logQuitEvent() {
@@ -447,9 +460,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
               icon: const Icon(Icons.settings_outlined),
               tooltip: 'Settings',
               // A pushed route keeps this screen's state, so the game resumes where it was.
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ),
+              onPressed: _openSettings,
             ),
           ],
         ),

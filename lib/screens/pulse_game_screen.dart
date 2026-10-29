@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -81,6 +82,7 @@ class _PulseGameScreenState extends State<PulseGameScreen> with ConfigHighScoreM
 
   void _startTimer() {
     _timer = Timer.periodic(_tickDuration, (_) {
+      if (GamePause.isPaused) return;
       setState(() {
         _currentIndex = (_currentIndex + 1) % (_gridSize * _gridSize);
       });
