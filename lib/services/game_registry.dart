@@ -1238,6 +1238,8 @@ class GameRegistry {
           min: 3.0,
           max: 20.0,
           divisions: 17,
+          // Words a grid reliably holds (measured by placing 20 words on 200 boards per size).
+          maxFor: (c) => ((c['gridSize'] as double) * 1.4 - 3).floorToDouble(),
         ),
         DropdownConfigOption<String>(
           key: 'moveMode',
