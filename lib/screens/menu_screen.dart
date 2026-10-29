@@ -107,7 +107,8 @@ class _MenuScreenState extends State<MenuScreen> {
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
-        title: const Text('Grid Mind', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Grid Mind',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         actions: [
           IconButton(
@@ -193,12 +194,14 @@ class _MenuScreenState extends State<MenuScreen> {
       padding: const EdgeInsets.only(bottom: 10.0, top: 8.0),
       child: Row(
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
-              letterSpacing: 0.5,
+          Flexible(
+            child: Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -220,7 +223,8 @@ class _MenuScreenState extends State<MenuScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
+              color:
+                  theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
