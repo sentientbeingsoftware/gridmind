@@ -342,7 +342,8 @@ class _SimonGameScreenState extends State<SimonGameScreen> with ConfigHighScoreM
 
     // Calculate dynamic button size based on screen dimensions and grid layout
     // Uses square root to estimate optimal grid dimensions
-    int crossAxisCount = sqrt(widget.numberOfSquares).ceil();
+    // Size by the longest row actually drawn (7-8 squares use rows of 4, not sqrt's 3).
+    int crossAxisCount = _getBalancedRowLengths(widget.numberOfSquares).fold(1, max);
     double buttonSize =
         (screenWidth / crossAxisCount) -
         (16 * 1.5); // Account for margins and spacing
