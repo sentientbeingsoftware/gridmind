@@ -335,40 +335,8 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    // Calculate screen dimensions and available space
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-
-    // --- Tile Size Calculation ---
-    // Estimate space needed for non-grid elements (text, spacing, etc.)
-    double estimatedNonGridHeight = 220;
-    
-    // Estimate target grid height
-    double targetTileSize = 40.0;
-
-    double cellMargins = 4.0; // Combined margin for each cell
-
-    // Calculate tile size based on available width
-    double calculatedTileSizeW =
-        (screenWidth -
-            32.0 -
-            (widget.gridSize * cellMargins)) /
-        widget.gridSize;
-
-    // Calculate tile size based on available height
-    double calculatedTileSizeH =
-        (screenHeight - estimatedNonGridHeight - (widget.gridSize * cellMargins)) /
-        widget.gridSize;
-
-    // Ensure tile sizes are positive
-    calculatedTileSizeW = calculatedTileSizeW > 0 ? calculatedTileSizeW : 30.0;
-    calculatedTileSizeH = calculatedTileSizeH > 0 ? calculatedTileSizeH : 30.0;
-
-    // Use the smaller of width or height to ensure tiles fit
-    final double mainTileSize = min(
-      calculatedTileSizeW,
-      calculatedTileSizeH,
-    ).floorToDouble();
+    const double targetTileSize = 40.0;
+    const double cellMargins = 4.0; // Combined margin for each cell
 
     return BaseGameScreen(
       title: 'Slide and Solve',
@@ -400,16 +368,20 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
           ),
         ],
       ),
-      child: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (currentGrid!.isNotEmpty)
-                _buildMainGrid(mainTileSize),
-            ],
-          ),
-        ),
+      // Size the board from the space the layout really leaves (not a guessed 220 dp).
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final margins = widget.gridSize * cellMargins;
+          final fit = min(
+            (box.maxWidth - 32.0 - margins) / widget.gridSize,
+            (box.maxHeight - margins) / widget.gridSize,
+          ).floorToDouble();
+          return Center(
+            child: SingleChildScrollView(
+              child: _buildMainGrid(fit > 12 ? fit : 12),
+            ),
+          );
+        },
       ),
     );
   }

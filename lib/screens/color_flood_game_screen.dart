@@ -357,7 +357,7 @@ child: GestureDetector(
                       color: color,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isCurrent ? Colors.white : Colors.white24,
+                        color: isCurrent ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withValues(alpha: 0.5), // visible on light and dark
                         width: isCurrent ? 3.0 : 1.5,
                       ),
                       boxShadow: [

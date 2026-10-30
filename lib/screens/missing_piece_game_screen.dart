@@ -247,7 +247,7 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
         return Center(
           child: Text(
             val,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
           ),
         );
       } else {
@@ -315,7 +315,7 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
           return Center(
             child: Text(
               val,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white70),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
             ),
           );
         } else {
