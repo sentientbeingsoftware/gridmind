@@ -126,7 +126,8 @@ class _MenuScreenState extends State<MenuScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        // Android 15+ draws under the nav bar, so add its height to the bottom padding.
+        padding: const EdgeInsets.all(16.0).copyWith(bottom: 16.0 + MediaQuery.paddingOf(context).bottom),
         children: [
           // Header banner
           Padding(
