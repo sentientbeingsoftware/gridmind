@@ -321,8 +321,8 @@ class _GridRunnerGameScreenState extends State<GridRunnerGameScreen> with Config
                       border: Border.all(
                         color: isRunner 
                             ? Colors.orange 
-                            : (isTrailed ? themeColor.withValues(alpha: 0.2) : theme.colorScheme.outline.withValues(alpha: 0.05)),
-                        width: isRunner ? 2.0 : 0.5,
+                            : (isTrailed ? themeColor.withValues(alpha: 0.2) : theme.colorScheme.outline.withValues(alpha: 0.35)),
+                        width: isRunner ? 2.0 : 1.0,
                       ),
                     ),
                     child: isGem
