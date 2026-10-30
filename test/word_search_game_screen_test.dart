@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/screens/word_search_game_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -155,5 +158,34 @@ void main() {
         await tester.pumpWidget(const SizedBox());
       }
     });
+  });
+
+  // Smoke test 2026-10-30 (Pixel 6a): at big grid sizes the bottom of the letters was cut off.
+  group('letters fit their cell on a Pixel 6a (411x914 dp)', () {
+    setUpAll(() async {
+      final root = Platform.environment['FLUTTER_ROOT'];
+      final loader = FontLoader('Roboto');
+      for (final f in ['Regular', 'Medium', 'Bold']) {
+        loader.addFont(Future.value(ByteData.sublistView(File('$root/bin/cache/artifacts/material_fonts/Roboto-$f.ttf').readAsBytesSync())));
+      }
+      await loader.load();
+    });
+
+    for (final n in [14, 16, 18, 20]) {
+      testWidgets('$n x $n', (t) async {
+        SharedPreferences.setMockInitialValues({'telemetry_consent_answered': true});
+        t.view.physicalSize = const Size(1080, 2400);
+        t.view.devicePixelRatio = 420 / 160;
+        addTearDown(t.view.resetPhysicalSize);
+        addTearDown(t.view.resetDevicePixelRatio);
+        await t.pumpWidget(MaterialApp(home: WordSearchGameScreen(gridSize: n, wordCount: 5, moveMode: 'zen', category: 'Random')));
+        await t.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+        await t.pump(const Duration(milliseconds: 500));
+        final cell = find.byKey(ValueKey('cell_${n - 1}_${n - 1}'));
+        final style = t.widget<Text>(find.descendant(of: cell, matching: find.byType(Text))).style!;
+        final painter = TextPainter(text: TextSpan(text: 'W', style: style), textDirection: TextDirection.ltr)..layout();
+        expect(painter.height, lessThanOrEqualTo(t.getRect(cell).height), reason: 'letter line box is taller than its cell, so the last row is clipped');
+      });
+    }
   });
 }
