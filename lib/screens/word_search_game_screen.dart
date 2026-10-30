@@ -82,6 +82,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
   int _score = 0; // In challenge mode, this represents remaining time when won. In zen mode, it represents completions.
   int _hintsUsed = 0;
   Point<int>? _hintCell;
+  String? _hintWord;
   Timer? _hintFlashTimer;
 
   // Drag selection tracking
@@ -505,6 +506,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       setState(() {
         _hintsUsed++;
         _hintCell = hintPlacement!.cells.first;
+        _hintWord = hintPlacement.word;
         if (widget.moveMode == 'challenge') {
           // Time penalty for using hint
           _timeLeft = max(0, _timeLeft - 10);
@@ -512,9 +514,12 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       });
 
       _hintFlashTimer?.cancel();
-      _hintFlashTimer = Timer(const Duration(milliseconds: 1500), () {
+      announce(context, 'Hint: ${hintPlacement.word} starts at row ${hintPlacement.cells.first.x + 1}, column ${hintPlacement.cells.first.y + 1}.');
+      _hintFlashTimer = Timer(const Duration(milliseconds: 4000), () {
+        if (!mounted) return;
         setState(() {
           _hintCell = null;
+          _hintWord = null;
         });
       });
     }
@@ -526,12 +531,18 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
       final removed = _foundPlacements.removeLast();
       _foundWords.remove(removed.word);
       _hintCell = null;
+      _hintWord = null;
     });
   }
 
   bool _isCellInSelection(Point<int> p) {
     return _selectedCells.contains(p);
   }
+
+  bool get _revealMissed => _isGameOver && !_isGameWon;
+
+  bool _isMissedCell(Point<int> p) =>
+      _revealMissed && _placedWords.any((w) => !_foundWords.contains(w.word) && w.cells.contains(p));
 
   Color? _getCellWordColor(Point<int> p) {
     // Return color of the word this cell belongs to (last found takes precedence)
@@ -655,6 +666,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                           final wordColor = _getCellWordColor(cellPt);
                           final wordBorderColor = _getCellWordBorderColor(cellPt);
                           final isHint = _hintCell == cellPt;
+                          final isMissed = _isMissedCell(cellPt);
 
                           Color cellBg = Colors.transparent;
                           Border? cellBorder;
@@ -662,6 +674,9 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                           if (isSelecting) {
                             cellBg = theme.colorScheme.secondaryContainer.withValues(alpha: 0.6);
                             cellBorder = Border.all(color: theme.colorScheme.primary, width: 2.0);
+                          } else if (isMissed) {
+                            cellBg = Colors.redAccent.withValues(alpha: 0.3);
+                            cellBorder = Border.all(color: Colors.redAccent, width: 1.5);
                           } else if (isHint) {
                             cellBg = Colors.amberAccent.withValues(alpha: 0.8);
                             cellBorder = Border.all(color: Colors.amber, width: 3.0);
@@ -672,7 +687,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                             cellBorder = Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.08));
                           }
 
-                          return Semantics(label: 'Row ${r + 1}, column ${c + 1}, letter $letter${wordColor != null ? ", part of a found word" : ""}${_startCell == Point(r, c) ? ", start of selection" : ""}', button: true, onTap: () => _semanticSelect(r, c), child: Container(
+                          return Semantics(label: 'Row ${r + 1}, column ${c + 1}, letter $letter${wordColor != null ? ", part of a found word" : ""}${isMissed ? ", part of a missed word" : ""}${_startCell == Point(r, c) ? ", start of selection" : ""}', button: true, onTap: () => _semanticSelect(r, c), child: Container(
                             key: ValueKey('cell_${r}_$c'),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
@@ -725,6 +740,8 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                     runSpacing: 8.0,
                     children: _targetWords.map((word) {
                       final found = _foundWords.contains(word);
+                      final missed = _revealMissed && !found;
+                      final hinted = _hintWord == word && !found;
                       final placementIdx = _placedWords.indexWhere((p) => p.word == word);
                       final color = placementIdx != -1 ? _getWordColor(placementIdx) : theme.colorScheme.primary;
 
@@ -744,7 +761,10 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: BorderSide(
-                            color: found ? Colors.transparent : theme.colorScheme.outline.withValues(alpha: 0.15),
+                            color: found
+                                ? Colors.transparent
+                                : (missed ? Colors.redAccent : (hinted ? Colors.amber : theme.colorScheme.outline.withValues(alpha: 0.15))),
+                            width: (missed || hinted) ? 2.5 : 1.0,
                           ),
                         ),
                       );

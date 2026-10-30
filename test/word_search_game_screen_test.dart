@@ -188,4 +188,66 @@ void main() {
       });
     }
   });
+
+  group('hint and timeout reveal', () {
+    final grid = [
+      ['C', 'A', 'T', 'X', 'Y', 'Z'],
+      ['D', 'X', 'X', 'X', 'X', 'X'],
+      ['O', 'X', 'X', 'X', 'X', 'X'],
+      ['G', 'X', 'X', 'X', 'X', 'X'],
+      ['X', 'X', 'X', 'X', 'X', 'X'],
+      ['X', 'X', 'X', 'X', 'X', 'X'],
+    ];
+
+    Future<void> open(WidgetTester t, String mode) async {
+      t.view.physicalSize = const Size(800, 1400);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      await t.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: WordSearchGameScreen(gridSize: 6, wordCount: 2, moveMode: mode, category: 'Random', testMode: true, testGrid: grid, testWords: const ['CAT', 'DOG']),
+        ),
+      ));
+      await t.pumpAndSettle();
+    }
+
+    Color? chipBorder(WidgetTester t, String word) =>
+        ((t.widget<Chip>(find.widgetWithText(Chip, word)).shape) as RoundedRectangleBorder).side.color;
+
+    testWidgets('Hint outlines the word it is pointing at in the word list', (t) async {
+      await open(t, 'zen');
+      expect(chipBorder(t, 'CAT'), isNot(Colors.amber));
+      await t.tap(find.textContaining('Hint'));
+      await t.pump();
+      expect(chipBorder(t, 'CAT'), Colors.amber);
+      expect(chipBorder(t, 'DOG'), isNot(Colors.amber));
+      await t.pump(const Duration(seconds: 5)); // flash ends
+      expect(chipBorder(t, 'CAT'), isNot(Colors.amber));
+    });
+
+    testWidgets('time-out marks every missed word on the board and in the list', (t) async {
+      // Test mode never starts the countdown, so use a real random board.
+      SharedPreferences.setMockInitialValues({'telemetry_consent_answered': true});
+      final handle = t.ensureSemantics();
+      t.view.physicalSize = const Size(800, 1400);
+      t.view.devicePixelRatio = 1.0;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      await t.pumpWidget(const MaterialApp(home: WordSearchGameScreen(gridSize: 6, wordCount: 3, moveMode: 'challenge', category: 'Random')));
+      await t.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+      await t.pump(const Duration(milliseconds: 500));
+      expect(find.bySemanticsLabel(RegExp('missed word')), findsNothing);
+      final chips = t.widgetList<Chip>(find.byType(Chip)).length;
+      expect(chips, greaterThan(0));
+      await t.pump(const Duration(seconds: 200)); // longer than the limit (6*15 + words*10)
+      await t.pump();
+      // Every unfound word is outlined in the list, and its letters are marked on the board.
+      for (final c in t.widgetList<Chip>(find.byType(Chip))) {
+        expect((c.shape as RoundedRectangleBorder).side.color, Colors.redAccent);
+      }
+      expect(find.bySemanticsLabel(RegExp('part of a missed word')).evaluate().length, greaterThanOrEqualTo(3));
+      handle.dispose();
+    });
+  });
 }
