@@ -689,6 +689,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                                         : widget.gridSize > 8
                                             ? 14.0
                                             : 17.0,
+                                height: 1.0, // titleMedium's 1.5 line height is taller than a cell at 16+ and clips the last row
                                 fontWeight: (isSelecting || wordColor != null) ? FontWeight.bold : FontWeight.w600,
                                 color: theme.colorScheme.onSurface,
                               ),
