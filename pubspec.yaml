@@ -47,6 +47,7 @@ dependencies:
   url_launcher: ^6.3.3
   http: ^1.6.0
   audioplayers: ^6.8.1
+  vibration: ^3.2.1
 
 # Development dependencies - only needed during development
 dev_dependencies:

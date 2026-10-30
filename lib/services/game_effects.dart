@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 import 'app_persistence_service.dart';
 
 /// Short sound effects and haptic taps. Both are user toggles (Settings) and
@@ -21,6 +22,26 @@ class GameEffects {
   @visibleForTesting
   // The plugin does not exist under flutter test; its async init errors escape try/catch.
   bool audioPluginAvailable = !Platform.environment.containsKey('FLUTTER_TEST');
+
+  /// Test hook: false = use Flutter's built-in HapticFeedback (the only option under flutter test).
+  @visibleForTesting
+  bool vibrationPluginAvailable = !Platform.environment.containsKey('FLUTTER_TEST');
+
+  /// A tap of [ms] at [amplitude] (1-255). HapticFeedback cannot set a strength and is
+  /// barely felt on many phones, so use the vibrator directly; fall back to [fallback].
+  Future<void> _buzz(int ms, int amplitude, Future<void> Function() fallback) async {
+    if (!vibrationPluginAvailable) {
+      fallback().catchError((_) {});
+      return;
+    }
+    try {
+      // Android ignores the amplitude on hardware that cannot vary it.
+      await Vibration.vibrate(duration: ms, amplitude: amplitude);
+    } catch (e) {
+      debugPrint('Haptic failed: $e');
+      fallback().catchError((_) {});
+    }
+  }
 
   Future<void> _load() async {
     if (_loaded) return;
@@ -54,18 +75,18 @@ class GameEffects {
 
   Future<void> tick() async {
     await _load();
-    if (_haptics) HapticFeedback.selectionClick().catchError((_) {});
+    if (_haptics) await _buzz(30, 180, HapticFeedback.selectionClick);
   }
 
   Future<void> win() async {
     await _load();
-    if (_haptics) HapticFeedback.mediumImpact().catchError((_) {});
+    if (_haptics) await _buzz(70, 230, HapticFeedback.mediumImpact);
     if (_sound) await _play('win');
   }
 
   Future<void> lose() async {
     await _load();
-    if (_haptics) HapticFeedback.heavyImpact().catchError((_) {});
+    if (_haptics) await _buzz(140, 255, HapticFeedback.heavyImpact);
     if (_sound) await _play('lose');
   }
 

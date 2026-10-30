@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/screens/grid_miner_game_screen.dart';
+import 'package:gridmind/services/game_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -153,5 +154,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Empty cell'), findsOneWidget);
     });
+  });
+
+  test('Grid Miner scores read like "12 resources", not a literal dollar-s', () {
+    final game = GameRegistry.games.firstWhere((g) => g.id == 'grid_miner');
+    expect(game.scoreFormatter!(12, <String, dynamic>{}), '12 resources');
   });
 }
