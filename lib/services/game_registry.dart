@@ -1044,7 +1044,7 @@ class GameRegistry {
       icon: Icons.build,
       category: 'Exploration Games',
       lowerIsBetter: false,
-      scoreFormatter: (s, _) => '\$s resources',
+      scoreFormatter: (s, _) => '$s resources',
       configOptions: [
         SliderConfigOption(
           key: 'gridSize',

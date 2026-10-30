@@ -12,6 +12,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     haptics = [];
     GameEffects.instance.audioPluginAvailable = false; // no audio plugin in tests
+    GameEffects.instance.vibrationPluginAvailable = false; // no vibrator plugin in tests
     GameEffects.instance.apply(sound: true, haptics: true);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -61,5 +62,29 @@ void main() {
     await t.pumpWidget(screen('1', won: true));
     await t.pump();
     expect(haptics, isEmpty);
+  });
+
+  testWidgets('with the vibrator plugin, taps use a strong amplitude and win/lose are stronger still', (t) async {
+    final calls = <Map>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('vibration'), (call) async {
+      if (call.method == 'hasVibrator' || call.method == 'hasAmplitudeControl') return true;
+      if (call.method == 'vibrate') calls.add(Map.from(call.arguments as Map));
+      return null;
+    });
+    GameEffects.instance.vibrationPluginAvailable = true;
+    addTearDown(() => GameEffects.instance.vibrationPluginAvailable = false);
+
+    await GameEffects.instance.tick();
+    await GameEffects.instance.win();
+    await GameEffects.instance.lose();
+
+    expect(calls.length, 3);
+    final amps = calls.map((c) => c['amplitude'] as int).toList();
+    expect(amps[0], greaterThanOrEqualTo(150), reason: 'a light tap must still be felt');
+    expect(amps[1], greaterThan(amps[0]));
+    expect(amps[2], greaterThanOrEqualTo(amps[1]));
+    expect(calls.map((c) => c['duration'] as int).toList(), [30, 70, 140]);
+    expect(haptics, isEmpty, reason: 'built-in HapticFeedback is not used when the vibrator works');
   });
 }
