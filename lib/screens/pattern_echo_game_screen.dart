@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '../services/app_persistence_service.dart';
@@ -177,7 +178,8 @@ class _PatternEchoGameScreenState extends State<PatternEchoGameScreen> with Conf
         _applyVisualTransformation();
       });
     } else {
-      Future.delayed(const Duration(milliseconds: 1800), () {
+      Future.delayed(const Duration(milliseconds: 1800), () async {
+        await GamePause.hold();
         if (!mounted) return;
         setState(() {
           _showingPattern = false;

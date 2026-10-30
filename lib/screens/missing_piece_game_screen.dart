@@ -1,3 +1,4 @@
+import '../utils/game_pause.dart';
 import '../utils/color_names.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -143,7 +144,8 @@ class _MissingPieceGameScreenState extends State<MissingPieceGameScreen> with Co
       });
     } else {
       double durationMs = 2000.0 + widget.gridSize * 400.0;
-      Future.delayed(Duration(milliseconds: durationMs.round()), () {
+      Future.delayed(Duration(milliseconds: durationMs.round()), () async {
+        await GamePause.hold();
         if (!mounted) return;
         setState(() {
           _showingPattern = false;
