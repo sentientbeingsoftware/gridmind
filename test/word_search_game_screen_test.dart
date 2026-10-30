@@ -171,7 +171,7 @@ void main() {
       await loader.load();
     });
 
-    for (final n in [14, 16, 18, 20]) {
+    for (final n in [14, 16, 18, 19, 20]) {
       testWidgets('$n x $n', (t) async {
         SharedPreferences.setMockInitialValues({'telemetry_consent_answered': true});
         t.view.physicalSize = const Size(1080, 2400);
@@ -182,9 +182,9 @@ void main() {
         await t.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
         await t.pump(const Duration(milliseconds: 500));
         final cell = find.byKey(ValueKey('cell_${n - 1}_${n - 1}'));
-        final style = t.widget<Text>(find.descendant(of: cell, matching: find.byType(Text))).style!;
-        final painter = TextPainter(text: TextSpan(text: 'W', style: style), textDirection: TextDirection.ltr)..layout();
-        expect(painter.height, lessThanOrEqualTo(t.getRect(cell).height), reason: 'letter line box is taller than its cell, so the last row is clipped');
+        final fontSize = t.widget<Text>(find.descendant(of: cell, matching: find.byType(Text))).style!.fontSize!;
+        // 18x18 (1.31x on the old layout) looked fine on the Pixel 6a, 19x19 (1.22x) clipped: need >= 1.3x.
+        expect(t.getRect(cell).height, greaterThanOrEqualTo(fontSize * 1.3), reason: 'cell is shorter than the letter, so its bottom is clipped');
       });
     }
   });
