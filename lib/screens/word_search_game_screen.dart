@@ -637,8 +637,9 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: widget.gridSize,
-                          mainAxisSpacing: 4.0,
-                          crossAxisSpacing: 4.0,
+                          // Big boards: 4 dp gaps would eat over a quarter of the board and leave cells too short for the letters.
+                          mainAxisSpacing: widget.gridSize > 12 ? 1.0 : 4.0,
+                          crossAxisSpacing: widget.gridSize > 12 ? 1.0 : 4.0,
                         ),
                         itemCount: widget.gridSize * widget.gridSize,
                         itemBuilder: (context, index) {
