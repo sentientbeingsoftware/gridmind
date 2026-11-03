@@ -54,6 +54,8 @@ dev_dependencies:
   # Flutter testing framework
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
 
   # Code quality and linting rules
   # The "flutter_lints" package contains a set of recommended lints to
@@ -71,6 +73,7 @@ dev_dependencies:
   # App icon generation tool
   # Automatically generates platform-specific app icons from a single image
   flutter_launcher_icons: ^0.14.4
+  alchemist: ^0.14.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
