@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/main.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Run: flutter test integration_test/random_tap_test.dart -d <android-device>
 //      [--dart-define=SEED=123 --dart-define=EVENTS=500]
+// Uses mock preferences, so it never touches real scores. Limit: a tap on an external link
+// (donate, privacy) leaves the app; the walk ends there.
 // Any exception (incl. RenderFlex overflow) fails the test; SEED reproduces it.
 const _seed = int.fromEnvironment('SEED', defaultValue: 42);
 const _events = int.fromEnvironment('EVENTS', defaultValue: 300);
@@ -16,6 +19,13 @@ void main() {
 
   testWidgets('random taps and swipes do not crash or overflow',
       (tester) async {
+    // Random taps reach Settings > "Clear all high scores" and the telemetry/feedback network
+    // calls. Dart-side mock prefs keep the device's real scores safe and telemetry off.
+    SharedPreferences.setMockInitialValues({
+      'telemetry_consent_answered': true,
+      'telemetry_enabled': false,
+      'walkthrough_seen__app_intro': true,
+    });
     final rng = Random(_seed);
     await tester.pumpWidget(const MyApp());
     await tester.pump(const Duration(milliseconds: 500));

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Usage: scripts/monkey.sh [-p package] [-n events] [-s seed] [-t throttle_ms] [-d adb_serial]
 # Exit 0 = no crash/ANR; 1 = crash/ANR found; 2 = usage/adb error.
+# WARNING: monkey taps the real app on the device: it can clear high scores (Settings), send real
+# telemetry to production and open links. Use a test device/emulator, not a phone with data you keep.
 set -u
 PKG=com.sentientbeingsoftware.gridmindapp EVENTS=5000 SEED=$RANDOM THROTTLE=50 SERIAL=""
 while getopts "p:n:s:t:d:" o; do case $o in
