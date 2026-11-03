@@ -411,7 +411,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0).copyWith(bottom: 16.0 + MediaQuery.paddingOf(context).bottom),
         children: <Widget>[
           // --- Theme Section ---
           _buildSettingsSection(

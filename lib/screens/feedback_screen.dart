@@ -99,7 +99,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     final result = _submissionResult!;
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24.0).copyWith(bottom: 24.0 + MediaQuery.paddingOf(context).bottom),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -174,7 +174,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0).copyWith(bottom: 16.0 + MediaQuery.paddingOf(context).bottom),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

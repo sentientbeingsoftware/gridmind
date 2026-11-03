@@ -140,7 +140,7 @@ class _BaseSetupScreenState extends State<BaseSetupScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24.0).copyWith(bottom: 24.0 + MediaQuery.paddingOf(context).bottom),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
