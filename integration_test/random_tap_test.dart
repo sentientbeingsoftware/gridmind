@@ -47,11 +47,15 @@ void main() {
         default:
           // Back navigation keeps the walk from getting stuck inside one game.
           final nav = tester.state<NavigatorState>(find.byType(Navigator).first);
-          await nav.maybePop();
+          // pop(), not maybePop(): maybePop asserts on a route whose scope is not built yet.
+          if (nav.canPop()) nav.pop();
       }
       await tester.pump(const Duration(milliseconds: 100));
       final e = tester.takeException();
       if (e != null) fail('seed=$_seed event=$i at $p: $e');
     }
+    // Dispose and let sounds finish: audioplayers' position updater otherwise outlives the tree.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
   });
 }
