@@ -281,11 +281,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter modalState) {
             return Padding(
-              padding: MediaQuery.of(ctx).viewInsets,
+              // useSafeArea pads top and sides only; the bottom bar needs its own padding.
+              padding: MediaQuery.of(ctx).viewInsets +
+                  EdgeInsets.only(bottom: MediaQuery.paddingOf(ctx).bottom),
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),

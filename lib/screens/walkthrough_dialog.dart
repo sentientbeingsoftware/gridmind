@@ -87,6 +87,7 @@ class _WalkthroughDialogState extends State<_WalkthroughDialog> {
     final last = _step == steps.length - 1;
     return AlertDialog(
       key: const Key('walkthrough_dialog'),
+      scrollable: true,
       title: Row(children: [
         Icon(widget.game.icon),
         const SizedBox(width: 12),
