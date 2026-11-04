@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show HttpDate;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/services/feedback_service.dart';
@@ -18,6 +19,129 @@ String _event(String id) => jsonEncode({
     });
 
 void main() {
+  group('Telemetry backoff', () {
+    final service = TelemetryService();
+    late int posts;
+    late int status;
+    late Map<String, String> headers;
+    late DateTime clock;
+
+    Future<void> flushEvent() async {
+      await service.logGameSession(
+        gameId: 'g',
+        startTime: clock,
+        durationSeconds: 1,
+        status: 'quit',
+        config: {},
+      );
+    }
+
+    setUp(() async {
+      posts = 0;
+      status = 500;
+      headers = {};
+      clock = DateTime.utc(2026, 1, 1, 12);
+      service.now = () => clock;
+      SharedPreferences.setMockInitialValues({
+        'telemetry_enabled': true,
+        'telemetry_queue': [_event('seed')],
+      });
+      TelemetryService.httpClient = MockClient((r) async {
+        posts++;
+        return http.Response('{}', status, headers: headers);
+      });
+      // Reset internal backoff: a successful flush clears it.
+      status = 200;
+      await service.flushPending();
+      posts = 0;
+      status = 500;
+    });
+    tearDown(() => service.now = DateTime.now);
+
+    Future<void> fiveEvents() async {
+      for (var i = 0; i < 5; i++) {
+        await flushEvent();
+      }
+    }
+
+    test('Retry-After seconds on 429 extends the wait', () async {
+      status = 429;
+      headers = {'retry-after': '600'};
+      await fiveEvents();
+      expect(posts, 1);
+      clock = clock.add(const Duration(seconds: 599));
+      await flushEvent();
+      expect(posts, 1);
+      clock = clock.add(const Duration(seconds: 2));
+      await flushEvent();
+      expect(posts, 2);
+    });
+
+    test('Retry-After HTTP-date on 503 is honoured', () async {
+      status = 503;
+      headers = {'retry-after': HttpDate.format(clock.add(const Duration(minutes: 5)))};
+      await fiveEvents();
+      clock = clock.add(const Duration(minutes: 4));
+      await flushEvent();
+      expect(posts, 1);
+      clock = clock.add(const Duration(minutes: 2));
+      await flushEvent();
+      expect(posts, 2);
+    });
+
+    test('Retry-After is capped at one hour', () async {
+      status = 429;
+      headers = {'retry-after': '999999'};
+      await fiveEvents();
+      clock = clock.add(const Duration(hours: 1, seconds: 1));
+      await flushEvent();
+      expect(posts, 2);
+    });
+
+    test('no header: 60 s floor', () async {
+      status = 429;
+      await fiveEvents();
+      clock = clock.add(const Duration(seconds: 59));
+      await flushEvent();
+      expect(posts, 1);
+      clock = clock.add(const Duration(seconds: 2));
+      await flushEvent();
+      expect(posts, 2);
+    });
+
+    test('401 keeps the batch queued', () async {
+      status = 401;
+      await fiveEvents();
+      expect((await service.getQueue()).length, 5);
+    });
+
+    test('400 drops the batch', () async {
+      status = 400;
+      await fiveEvents();
+      expect(await service.getQueue(), isEmpty);
+    });
+
+    test('backoff doubles per failure and resets on success', () async {
+      await fiveEvents(); // failure 1 -> 60 s
+      clock = clock.add(const Duration(seconds: 61));
+      await flushEvent(); // failure 2 -> 120 s
+      expect(posts, 2);
+      clock = clock.add(const Duration(seconds: 61));
+      await flushEvent(); // still backing off
+      expect(posts, 2);
+      clock = clock.add(const Duration(seconds: 60));
+      status = 200;
+      await flushEvent(); // retries and succeeds, resets
+      expect(posts, 3);
+      status = 500;
+      await fiveEvents(); // fresh failure: back to 60 s
+      final before = posts;
+      clock = clock.add(const Duration(seconds: 61));
+      await flushEvent();
+      expect(posts, before + 1);
+    });
+  });
+
   group('Telemetry flush', () {
     late int posts;
     late int status;

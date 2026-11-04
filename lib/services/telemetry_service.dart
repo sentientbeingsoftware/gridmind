@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show HttpDate;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -25,8 +26,11 @@ class TelemetryService {
 
   // After a failed flush, event-triggered flushes pause for this long so an
   // offline device doesn't attempt a POST on every game event.
+  // Doubles per consecutive failure, capped; a Retry-After header can raise it.
   static const Duration _retryBackoff = Duration(seconds: 60);
-  DateTime? _lastFailure;
+  static const Duration _maxBackoff = Duration(hours: 1);
+  DateTime? _retryAt;
+  int _failures = 0;
 
   // The server rejected the batch itself (bad request / too large / failed
   // validation), so resending the same bytes can never succeed. Everything else
@@ -102,8 +106,7 @@ class TelemetryService {
       }
       await prefs.setStringList(_telemetryQueueKey, queue);
 
-      final backingOff =
-          _lastFailure != null && now().difference(_lastFailure!) < _retryBackoff;
+      final backingOff = _retryAt != null && now().isBefore(_retryAt!);
       if (queue.length >= _batchLimit && !backingOff) {
         await _flushQueue();
       }
@@ -168,20 +171,50 @@ class TelemetryService {
       ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        _lastFailure = null;
+        _clearBackoff();
         debugPrint('Telemetry flush successful: ${response.statusCode}');
         await _dropSent(prefs, sentCount);
       } else if (_permanentRejections.contains(response.statusCode)) {
-        _lastFailure = null;
+        _clearBackoff();
         debugPrint('Telemetry batch rejected (${response.statusCode}); discarding it');
         await _dropSent(prefs, sentCount);
       } else {
-        _lastFailure = now();
+        _recordFailure(response);
         debugPrint('Telemetry flush failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      _lastFailure = now();
+      _recordFailure(null);
       debugPrint('Telemetry connection failed: $e');
+    }
+  }
+
+  void _clearBackoff() {
+    _retryAt = null;
+    _failures = 0;
+  }
+
+  void _recordFailure(http.Response? response) {
+    var wait = _retryBackoff * (1 << _failures.clamp(0, 6));
+    _failures++;
+    if (response != null &&
+        (response.statusCode == 429 || response.statusCode == 503)) {
+      final hinted = _parseRetryAfter(response.headers['retry-after']);
+      if (hinted != null && hinted > wait) wait = hinted;
+    }
+    if (wait > _maxBackoff) wait = _maxBackoff;
+    _retryAt = now().add(wait);
+  }
+
+  /// Retry-After is delta-seconds or an HTTP-date; null if absent or unparseable.
+  Duration? _parseRetryAfter(String? value) {
+    if (value == null) return null;
+    final secs = int.tryParse(value.trim());
+    if (secs != null) return Duration(seconds: secs < 0 ? 0 : secs);
+    try {
+      final d = HttpDate.parse(value.trim()).difference(now().toUtc());
+      return d.isNegative ? Duration.zero : d;
+    } catch (_) {
+      return null;
     }
   }
 
