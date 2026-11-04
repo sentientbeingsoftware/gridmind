@@ -75,10 +75,6 @@ void main() {
     expect(n, greaterThan(0), reason: 'no $what found');
   }
 
-  // Real app bugs found by this file; tests kept, skipped until the app is fixed.
-  // paletteBug: APP BUG: _showPaletteModal (settings_screen.dart) pads only by viewInsets, so the sheet content runs under the system bar. Fix: useSafeArea: true.
-  // walkthroughBug: APP BUG: _WalkthroughDialog content is not scrollable, so it overflows (8 px) at 640x360 with a 48 dp bottom bar.
-
   final buttons = [find.byWidgetPredicate((w) => w is ButtonStyleButton)];
 
   for (final c in cases) {
@@ -93,7 +89,7 @@ void main() {
       expect(find.byKey(const Key('walkthrough_dialog')), findsOneWidget);
       expectClear(t, size, l, b, r, find.byKey(const Key('walkthrough_dialog')), buttons, 'walkthrough button');
       expect(t.takeException(), isNull);
-    }, skip: name == '640x360 bar bottom'); // walkthroughBug
+    });
 
     testWidgets('Settings palette sheet: content clears the bars ($name)', (t) async {
       setView(t, size, l, b, r);
@@ -105,7 +101,7 @@ void main() {
       expect(sheet, findsOneWidget);
       await scrollAllToEnd(t, sheet);
       expectClear(t, size, l, b, r, sheet, [...buttons, find.byType(Text), find.byType(RadioListTile<String>)], 'palette sheet content');
-    }, skip: true); // paletteBug
+    });
 
     testWidgets('Settings clear-scores dialog: buttons clear the bars ($name)', (t) async {
       setView(t, size, l, b, r);
