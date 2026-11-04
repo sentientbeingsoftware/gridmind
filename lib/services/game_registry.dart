@@ -267,7 +267,7 @@ class GameRegistry {
       id: 'sumgrid',
       title: 'Sum Grid',
       description:
-          'Select adjacent numbers to add up to the target sum before running out of time or moves.',
+          'Drag or tap adjacent numbers to add up to the target sum before running out of time or moves.',
       icon: Icons.add_box,
       category: 'Logic & Arithmetic Games',
       lowerIsBetter: false,

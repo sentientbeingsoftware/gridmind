@@ -699,7 +699,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
                               letter,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontSize: widget.gridSize > 16
-                                    ? 9.0
+                                    ? 10.0 // 13 dp cells of 19x19/20x20: the clip test needs cell >= 1.3x font
                                     : widget.gridSize > 12
                                         ? 11.0
                                         : widget.gridSize > 8
