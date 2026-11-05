@@ -272,6 +272,7 @@ class _GridRunnerGameScreenState extends State<GridRunnerGameScreen> with Config
       gameOverMessage: 'Crashed! Game Over.',
       onReset: _initializeGame,
       isGameInProgress: _moves > 0 && !_isGameOver,
+      onArrowKey: (dr, dc) => _changeDirection(Point(dr, dc)),
       onHelp: _showHelpDialog,
       child: Center(
         child: Column(
