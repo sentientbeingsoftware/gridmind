@@ -401,6 +401,7 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
 
     return BaseGameScreen(
       onArrowKey: _moveBrush,
+      onActionKey: (_) => _toggleCurrentCell(),
       title: 'Grid Painter',
       gameId: 'grid_painter',
       gameConfig: {

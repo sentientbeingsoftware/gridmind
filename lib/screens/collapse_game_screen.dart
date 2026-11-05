@@ -280,6 +280,24 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
 
   /// Initializes the game grid with random blocks
   /// Sets up the initial game state and processes any starting matches
+  // Keyboard: arrows move the cursor; Space/Enter grabs it, then arrows swap that block.
+  int _curRow = 0, _curCol = 0;
+  bool _grabbed = false;
+
+  void _onArrowKey(int dr, int dc) {
+    if (_gameWon || _movesLeft == 0) return;
+    final nr = (_curRow + dr).clamp(0, _gridSize - 1);
+    final nc = (_curCol + dc).clamp(0, _gridSize - 1);
+    if (_grabbed) {
+      if (nr == _curRow && nc == _curCol) return;
+      _semanticSwap(_curRow, _curCol, dr, dc);
+    }
+    setState(() {
+      _curRow = nr;
+      _curCol = nc;
+    });
+  }
+
   void _initializeGrid() async {
     setState(() {
       _score = 0;
@@ -852,6 +870,8 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
     final movesUsed = widget.level.moves - _movesLeft;
 
     return BaseGameScreen(
+      onArrowKey: _onArrowKey,
+      onActionKey: (_) => setState(() => _grabbed = !_grabbed),
       title: 'Collapse - ${widget.level.name}',
       gameId: 'collapse',
       gameConfig: {
@@ -933,10 +953,12 @@ class _CollapseGameScreenState extends State<CollapseGameScreen>
                                     ? Colors.grey.shade300
                                     : block?.color ?? Colors.transparent,
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  width: 1,
-                                ),
+                                border: (row == _curRow && col == _curCol)
+                                    ? Border.all(color: _grabbed ? Colors.orange : Colors.white, width: 3)
+                                    : Border.all(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        width: 1,
+                                      ),
                                 boxShadow: block?.isMatched == true
                                     ? [
                                         BoxShadow(
