@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
 import '../services/app_persistence_service.dart';
 import 'mixins/config_high_score_mixin.dart';
@@ -515,6 +516,14 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
     final themeColor = _palette.isNotEmpty ? _palette[0] : theme.colorScheme.primary;
 
     return BaseGameScreen(
+      // Quadrants are 0 1 / 2 3: arrows pick one; Space/Enter/E rotate right, Q left.
+      onArrowKey: (dr, dc) => setState(() {
+        if (_isGameOver || _isGameWon) return;
+        final r = (_selectedQuadrant ~/ 2 + dr).clamp(0, 1);
+        final c = (_selectedQuadrant % 2 + dc).clamp(0, 1);
+        _selectedQuadrant = r * 2 + c;
+      }),
+      onActionKey: (k) => _rotateQuadrant(_selectedQuadrant, k == LogicalKeyboardKey.keyQ ? false : true),
       title: 'Rotate Matrix',
       gameId: 'rotate_matrix',
       gameConfig: {

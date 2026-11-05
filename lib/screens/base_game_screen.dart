@@ -71,6 +71,9 @@ class BaseGameScreen extends StatefulWidget {
   /// Keyboard arrows / WASD, as a (rowDelta, colDelta) step: up is (-1, 0). Null = keys ignored.
   final void Function(int dr, int dc)? onArrowKey;
 
+  /// Space / Enter / Q / E, for games that use them. Null = ignored.
+  final void Function(LogicalKeyboardKey key)? onActionKey;
+
   const BaseGameScreen({
     super.key,
     required this.title,
@@ -95,6 +98,7 @@ class BaseGameScreen extends StatefulWidget {
     this.gameId,
     this.gameConfig,
     this.onArrowKey,
+    this.onActionKey,
   });
 
   @override
@@ -436,8 +440,16 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
         autofocus: true,
         onKeyEvent: (node, event) {
           final cb = widget.onArrowKey;
-          if (cb == null || event is! KeyDownEvent) return KeyEventResult.ignored;
+          if (event is! KeyDownEvent) return KeyEventResult.ignored;
           final k = event.logicalKey;
+          final act = widget.onActionKey;
+          if (act != null &&
+              (k == LogicalKeyboardKey.space || k == LogicalKeyboardKey.enter ||
+                  k == LogicalKeyboardKey.keyQ || k == LogicalKeyboardKey.keyE)) {
+            act(k);
+            return KeyEventResult.handled;
+          }
+          if (cb == null) return KeyEventResult.ignored;
           if (k == LogicalKeyboardKey.arrowUp || k == LogicalKeyboardKey.keyW) {
             cb(-1, 0);
           } else if (k == LogicalKeyboardKey.arrowDown || k == LogicalKeyboardKey.keyS) {

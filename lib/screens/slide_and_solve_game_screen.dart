@@ -62,6 +62,9 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
   /// Whether the puzzle has been solved
   /// Controls game state and UI updates
   bool isSolved = false;
+  // Keyboard: arrows move the cursor; Space/Enter grabs it, then arrows slide its row/column.
+  int _curRow = 0, _curCol = 0;
+  bool _grabbed = false;
   
   /// Random number generator for pattern generation and shuffling
   final Random random = Random();
@@ -339,6 +342,22 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
     const double cellMargins = 4.0; // Combined margin for each cell
 
     return BaseGameScreen(
+      onArrowKey: (dr, dc) {
+        if (isSolved) return;
+        if (_grabbed) {
+          if (dc != 0) {
+            _slideRow(_curRow, dc > 0);
+          } else {
+            _slideColumn(_curCol, dr > 0);
+          }
+        } else {
+          setState(() {
+            _curRow = (_curRow + dr).clamp(0, widget.gridSize - 1);
+            _curCol = (_curCol + dc).clamp(0, widget.gridSize - 1);
+          });
+        }
+      },
+      onActionKey: (_) => setState(() => _grabbed = !_grabbed),
       title: 'Slide and Solve',
       gameId: 'slideandsolve',
       gameConfig: {
@@ -442,6 +461,7 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
                 child: _buildGridCell(
                   currentGrid![rowIndex][colIndex],
                   tileSize,
+                  cursor: rowIndex == _curRow && colIndex == _curCol ? (_grabbed ? 2 : 1) : 0,
                 ),
               ),
               );
@@ -453,14 +473,17 @@ class _SlideAndSolveGameScreenState extends State<SlideAndSolveGameScreen> with 
   }
 
   // _buildGridCell remains the same (it just builds the visual representation of a cell)
-  Widget _buildGridCell(Color color, double tileSize) {
+  /// [cursor]: 0 none, 1 keyboard cursor, 2 grabbed.
+  Widget _buildGridCell(Color color, double tileSize, {int cursor = 0}) {
     return Container(
       width: tileSize,
       height: tileSize,
       margin: const EdgeInsets.all(2.0),
       decoration: BoxDecoration(
         color: color,
-        border: Border.all(color: Colors.black.withValues(alpha: 0.3)),
+        border: cursor == 0
+            ? Border.all(color: Colors.black.withValues(alpha: 0.3))
+            : Border.all(color: cursor == 2 ? Colors.orange : Colors.white, width: 3),
         borderRadius: BorderRadius.circular(4),
       ),
     );
