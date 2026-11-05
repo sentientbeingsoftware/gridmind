@@ -355,6 +355,9 @@ class _RotateMatrixGameScreenState extends State<RotateMatrixGameScreen> with Co
                   '4. Recreate the solid color layout shown in the target pattern thumbnail.\n'
                   '5. In Challenge Mode, solve the puzzle within the move limit.',
                 ),
+                SizedBox(height: 12),
+                Text('Keyboard:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('Arrow keys or WASD choose a quadrant. Space, Enter or E rotates it right; Q rotates it left.'),
               ],
             ),
           ),

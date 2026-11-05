@@ -5,6 +5,7 @@ import 'package:gridmind/models/game_metadata.dart';
 import 'package:gridmind/screens/base_setup_screen.dart';
 import 'package:gridmind/screens/walkthrough_dialog.dart';
 import 'package:gridmind/services/app_persistence_service.dart';
+import 'package:gridmind/services/game_registry.dart';
 
 GameMetadata _game() => GameMetadata(
       id: 'wt_game',
@@ -37,6 +38,23 @@ void main() {
         id: 'x', title: 't', description: 'D', icon: Icons.star,
         category: 'c', configOptions: [], gameBuilder: (c, cfg) => const SizedBox());
     expect(g.walkthroughSteps, ['D']);
+  });
+
+  test('keyboardHint is appended as the last step, and absent when null', () {
+    GameMetadata g(String? hint) => GameMetadata(
+        id: 'x', title: 't', description: 'D', icon: Icons.star, category: 'c',
+        configOptions: [], gameBuilder: (c, cfg) => const SizedBox(),
+        walkthrough: const ['One'], keyboardHint: hint);
+    expect(g('Arrows').walkthroughSteps, ['One', 'Keyboard: Arrows']);
+    expect(g(null).walkthroughSteps, ['One']);
+  });
+
+  test('exactly the six keyboard-enabled games carry a keyboard step', () {
+    final withKeys = GameRegistry.games.where((g) => g.keyboardHint != null).map((g) => g.id).toSet();
+    expect(withKeys, {'slideandsolve', 'collapse', 'grid_painter', 'grid_runner', 'rotate_matrix', 'gravity_shift'});
+    for (final g in GameRegistry.games.where((g) => g.keyboardHint != null)) {
+      expect(g.walkthroughSteps.last, startsWith('Keyboard: '), reason: g.id);
+    }
   });
 
   testWidgets('shows on first launch once, can be reset and re-shown', (t) async {
