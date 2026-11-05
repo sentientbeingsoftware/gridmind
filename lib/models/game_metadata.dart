@@ -156,8 +156,14 @@ class GameMetadata {
   /// back to a single page containing [description].
   final List<String> walkthrough;
 
-  List<String> get walkthroughSteps =>
-      walkthrough.isNotEmpty ? walkthrough : [description];
+  /// Keyboard controls (PC / hardware keyboard). Always shown as the last
+  /// walkthrough step so phone players discover it too. Null = no keys.
+  final String? keyboardHint;
+
+  List<String> get walkthroughSteps => [
+        ...(walkthrough.isNotEmpty ? walkthrough : [description]),
+        if (keyboardHint != null) 'Keyboard: $keyboardHint',
+      ];
 
   /// Saved setup values merged over defaults, decoded to their real types.
   /// This is the exact config used for score keys, so setup, game and
@@ -187,5 +193,6 @@ class GameMetadata {
     this.lowerIsBetter = false,
     this.scoreFormatter,
     this.walkthrough = const [],
+    this.keyboardHint,
   });
 }

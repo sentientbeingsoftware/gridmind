@@ -76,6 +76,7 @@ class GameRegistry {
     ),
     GameMetadata(
       id: 'slideandsolve',
+      keyboardHint: 'Arrow keys or WASD move the cursor. Press Space to grab it, then the arrows slide its row or column. Press Space again to let go.',
       title: 'Slide and Solve',
       description:
           'Slide rows and columns to match a side-by-side target configuration.',
@@ -102,6 +103,7 @@ class GameRegistry {
     ),
     GameMetadata(
       id: 'collapse',
+      keyboardHint: 'Arrow keys or WASD move the cursor. Press Space to grab a block, then an arrow swaps it that way. Press Space again to let go.',
       title: 'Collapse',
       description:
           'Match-3 style block clearing game with customizable rules and multi-directional gravity.',
@@ -571,6 +573,7 @@ class GameRegistry {
     ),
     GameMetadata(
       id: 'grid_painter',
+      keyboardHint: 'Arrow keys or WASD move the brush. Space or Enter paints or erases the current cell.',
       title: 'Grid Painter',
       description:
           'Draw target patterns on a grid using a moving paintbrush. Optimize moves to match the blueprint exactly.',
@@ -779,6 +782,7 @@ class GameRegistry {
     ),
     GameMetadata(
       id: 'grid_runner',
+      keyboardHint: 'Arrow keys or WASD set the runner\'s direction.',
       title: 'Grid Runner',
       description:
           'Navigate the grid to collect gems without hitting the walls or crossing your own trail.',
@@ -887,6 +891,7 @@ class GameRegistry {
     ),
     GameMetadata(
       id: 'rotate_matrix',
+      keyboardHint: 'Arrow keys or WASD choose a quadrant. Space, Enter or E rotates it right; Q rotates it left.',
       title: 'Rotate Matrix',
       description:
           'Spin quadrant sections of the grid to match a target pattern.',
@@ -944,6 +949,7 @@ class GameRegistry {
     ),
     GameMetadata(
       id: 'gravity_shift',
+      keyboardHint: 'Arrow keys or WASD apply gravity in that direction.',
       title: 'Gravity Shift',
       description: 'Slide tiles under gravity to match a target pattern.',
       icon: Icons.arrow_upward,

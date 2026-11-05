@@ -232,6 +232,9 @@ class _GridRunnerGameScreenState extends State<GridRunnerGameScreen> with Config
                   '3. You leave a trailing line behind you. Crossing your own trail or hitting the grid walls will cause a crash (Game Over!).\n'
                   '4. 180-degree reversals are blocked to prevent self-collision.',
                 ),
+                SizedBox(height: 12),
+                Text('Keyboard:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text("Arrow keys or WASD set the runner's direction."),
               ],
             ),
           ),
