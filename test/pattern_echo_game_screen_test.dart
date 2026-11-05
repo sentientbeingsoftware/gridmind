@@ -4,6 +4,26 @@ import 'package:gridmind/screens/pattern_echo_game_screen.dart';
 import 'dart:math';
 
 void main() {
+  group('board fits desktop windows', () {
+    for (final size in const [Size(1366, 720), Size(1920, 1032), Size(411, 914)]) {
+      for (final n in [4, 6]) {
+        testWidgets('${n}x$n at ${size.width.toInt()}x${size.height.toInt()}', (tester) async {
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          await tester.pumpWidget(MaterialApp(
+            home: PatternEchoGameScreen(gridSize: n, transformationMode: 'none', displayMode: 'mental', lives: 3),
+          ));
+          await tester.pumpAndSettle();
+          final last = find.bySemanticsLabel(RegExp('^Row $n, column $n'));
+          expect(last, findsOneWidget);
+          expect(tester.getRect(last).bottom, lessThanOrEqualTo(size.height));
+        });
+      }
+    }
+  });
+
   group('PatternEchoGameScreen Widget Tests', () {
     testWidgets('renders screen in show phase and transitions to input phase', (WidgetTester tester) async {
       await tester.pumpWidget(

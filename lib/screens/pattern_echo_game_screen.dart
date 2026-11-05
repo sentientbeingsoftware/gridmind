@@ -386,7 +386,10 @@ class _PatternEchoGameScreenState extends State<PatternEchoGameScreen> with Conf
             ),
         ],
       ),
-      child: Center(
+      child: LayoutBuilder(builder: (context, box) {
+        // Square from the smaller side: on wide, short windows (PC) width alone pushed rows off-screen.
+        final side = min(box.maxWidth, box.maxHeight - (_isGameOver ? 40.0 : 0.0));
+        return Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -398,8 +401,9 @@ class _PatternEchoGameScreenState extends State<PatternEchoGameScreen> with Conf
                 ),
                 const SizedBox(height: 16),
               ],
-              AspectRatio(
-                aspectRatio: 1.0,
+              SizedBox(
+                width: side,
+                height: side,
                 child: AnimatedRotation(
                   turns: _gridRotationTurns,
                   duration: const Duration(milliseconds: 600),
@@ -477,7 +481,8 @@ class _PatternEchoGameScreenState extends State<PatternEchoGameScreen> with Conf
             ],
           ),
         ),
-      ),
+      );
+      }),
     );
   }
 }
