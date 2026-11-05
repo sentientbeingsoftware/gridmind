@@ -400,6 +400,7 @@ class _GridPainterGameScreenState extends State<GridPainterGameScreen> with Conf
     final showTarget = widget.gameMode == 'show';
 
     return BaseGameScreen(
+      onArrowKey: _moveBrush,
       title: 'Grid Painter',
       gameId: 'grid_painter',
       gameConfig: {

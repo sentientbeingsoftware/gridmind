@@ -3,6 +3,7 @@ import 'settings_screen.dart';
 import '../services/game_effects.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/telemetry_service.dart';
 
 /// Reusable base game screen shell that provides a premium, unified HUD layout
@@ -67,6 +68,9 @@ class BaseGameScreen extends StatefulWidget {
   /// Optional game configuration details for telemetry
   final Map<String, dynamic>? gameConfig;
 
+  /// Keyboard arrows / WASD, as a (rowDelta, colDelta) step: up is (-1, 0). Null = keys ignored.
+  final void Function(int dr, int dc)? onArrowKey;
+
   const BaseGameScreen({
     super.key,
     required this.title,
@@ -90,6 +94,7 @@ class BaseGameScreen extends StatefulWidget {
     this.isGameInProgress = false,
     this.gameId,
     this.gameConfig,
+    this.onArrowKey,
   });
 
   @override
@@ -427,7 +432,26 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
         if (didPop) return;
         _handleExit(context);
       },
-      child: Scaffold(
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          final cb = widget.onArrowKey;
+          if (cb == null || event is! KeyDownEvent) return KeyEventResult.ignored;
+          final k = event.logicalKey;
+          if (k == LogicalKeyboardKey.arrowUp || k == LogicalKeyboardKey.keyW) {
+            cb(-1, 0);
+          } else if (k == LogicalKeyboardKey.arrowDown || k == LogicalKeyboardKey.keyS) {
+            cb(1, 0);
+          } else if (k == LogicalKeyboardKey.arrowLeft || k == LogicalKeyboardKey.keyA) {
+            cb(0, -1);
+          } else if (k == LogicalKeyboardKey.arrowRight || k == LogicalKeyboardKey.keyD) {
+            cb(0, 1);
+          } else {
+            return KeyEventResult.ignored;
+          }
+          return KeyEventResult.handled;
+        },
+        child: Scaffold(
         appBar: AppBar(
           title: Text(widget.title,
               style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -538,6 +562,7 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
             },
           ),
         ),
+      ),
       ),
     );
   }

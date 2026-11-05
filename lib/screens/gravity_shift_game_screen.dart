@@ -385,6 +385,8 @@ class _GravityShiftGameScreenState extends State<GravityShiftGameScreen> with Co
   @override
   Widget build(BuildContext context) {
     return BaseGameScreen(
+      // up=0, down=1, left=2, right=3, as on the arrow buttons
+      onArrowKey: (dr, dc) => _applyGravityDirection(dr < 0 ? 0 : dr > 0 ? 1 : dc < 0 ? 2 : 3),
       title: 'Gravity Shift',
       gameId: 'gravity_shift',
       gameConfig: {
