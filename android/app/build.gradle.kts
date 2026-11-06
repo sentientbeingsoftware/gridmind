@@ -47,6 +47,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -93,6 +94,13 @@ gradle.taskGraph.whenReady {
                 "storeFile points to an existing keystore (relative to android/app/)."
         )
     }
+}
+
+dependencies {
+    // Spike: UI Automator only; no Flutter-side test dependency needed.
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.3.0")
 }
 
 flutter {
