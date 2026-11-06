@@ -270,6 +270,10 @@ class GameRegistry {
       title: 'Sum Grid',
       description:
           'Drag or tap adjacent numbers to add up to the target sum before running out of time or moves.',
+      walkthrough: const [
+        'Select adjacent numbers that add up to the target sum before time or moves run out.',
+        'Drag across the tiles, or tap them one by one. Tap the last tile again to deselect it, or tap a far-away tile to start over.',
+      ],
       icon: Icons.add_box,
       category: 'Logic & Arithmetic Games',
       lowerIsBetter: false,
