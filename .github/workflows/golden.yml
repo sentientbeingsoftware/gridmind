@@ -1,0 +1,41 @@
+name: Golden screenshots
+
+# Not a required check. Fails a PR when a screenshot differs from its baseline.
+# Baselines are the alchemist CI variant only (test/flutter_test_config.dart):
+# Ahem blocks font, so output does not depend on the host; ubuntu-24.04 is pinned anyway.
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: 'Regenerate baselines and commit them to this branch (intentional visual change)'
+        type: boolean
+        default: false
+
+jobs:
+  golden:
+    name: Golden
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get
+      - name: Compare goldens
+        if: ${{ !inputs.update_baselines }}
+        run: flutter test --tags golden
+      - name: Update baselines and commit
+        if: ${{ inputs.update_baselines && github.ref_name != 'main' }}
+        run: |
+          flutter test --tags golden --update-goldens
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test
+          git diff --cached --quiet && { echo "No baseline changes"; exit 0; }
+          git commit -m "test: update golden baselines"
+          git push
