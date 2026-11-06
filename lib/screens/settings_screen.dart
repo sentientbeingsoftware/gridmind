@@ -50,10 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Palette state
   String _paletteType = 'random';
-  List<Color> _customPalette = [
-    Colors.red, Colors.green, Colors.blue, Colors.yellow, Colors.purple,
-    Colors.orange, Colors.cyan, Colors.pink, Colors.teal
-  ];
+  List<Color> _customPalette = List.of(kDefaultCustomPalette);
   final List<List<Color>> _presets = [
     // Classic
     [Colors.red, Colors.green, Colors.blue, Colors.yellow, Colors.purple, Colors.orange, Colors.cyan, Colors.pink, Colors.teal],

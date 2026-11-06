@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import '../utils/color_names.dart';
 
+const List<Color> kDefaultCustomPalette = [
+  Colors.red, Colors.green, Colors.blue, Colors.yellow, Colors.purple,
+  Colors.orange, Colors.cyan, Colors.pink, Colors.teal
+];
+
+String _hex(Color c) => (c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase();
+
 /// Lets the player edit the nine Custom palette colours with hue, saturation and
 /// brightness sliders. Returns the new list on Save, null on Cancel.
 Future<List<Color>?> showCustomPaletteEditor(BuildContext context, List<Color> initial) {
@@ -8,6 +15,12 @@ Future<List<Color>?> showCustomPaletteEditor(BuildContext context, List<Color> i
     context: context,
     builder: (_) => _CustomPaletteDialog(initial: initial),
   );
+}
+
+// WCAG non-text contrast minimum is 3:1. Warn only: some defaults (yellow) fail on light themes.
+bool _lowContrast(Color a, Color b) {
+  final la = a.computeLuminance(), lb = b.computeLuminance();
+  return ((la > lb ? la : lb) + 0.05) / ((la > lb ? lb : la) + 0.05) < 3;
 }
 
 class _CustomPaletteDialog extends StatefulWidget {
@@ -21,8 +34,26 @@ class _CustomPaletteDialog extends StatefulWidget {
 class _CustomPaletteDialogState extends State<_CustomPaletteDialog> {
   late final List<HSVColor> _colors = widget.initial.map(HSVColor.fromColor).toList();
   int _selected = 0;
+  late final TextEditingController _hexCtrl = TextEditingController(text: _hex(_colors[0].toColor()));
 
-  void _edit(HSVColor Function(HSVColor) change) => setState(() => _colors[_selected] = change(_colors[_selected]));
+  @override
+  void dispose() {
+    _hexCtrl.dispose();
+    super.dispose();
+  }
+
+  void _syncHex() => _hexCtrl.text = _hex(_colors[_selected].toColor());
+
+  void _edit(HSVColor Function(HSVColor) change) => setState(() {
+        _colors[_selected] = change(_colors[_selected]);
+        _syncHex();
+      });
+
+  void _onHex(String v) {
+    final m = RegExp(r'^#?([0-9a-fA-F]{6})$').firstMatch(v.trim());
+    if (m == null) return;
+    setState(() => _colors[_selected] = HSVColor.fromColor(Color(0xFF000000 | int.parse(m.group(1)!, radix: 16))));
+  }
 
   Widget _slider(String label, double value, double max, ValueChanged<double> onChanged) => Row(
         children: [
@@ -34,6 +65,7 @@ class _CustomPaletteDialogState extends State<_CustomPaletteDialog> {
   @override
   Widget build(BuildContext context) {
     final hsv = _colors[_selected];
+    final surface = Theme.of(context).colorScheme.surface;
     final border = Theme.of(context).colorScheme.onSurface;
     return AlertDialog(
       title: const Text('Custom colors'),
@@ -52,7 +84,10 @@ class _CustomPaletteDialogState extends State<_CustomPaletteDialog> {
                     selected: i == _selected,
                     label: 'Color ${i + 1} of ${_colors.length}, ${colorName(_colors[i].toColor())}',
                     child: GestureDetector(
-                      onTap: () => setState(() => _selected = i),
+                      onTap: () => setState(() {
+                        _selected = i;
+                        _syncHex();
+                      }),
                       child: Container(
                         width: 40,
                         height: 40,
@@ -70,6 +105,24 @@ class _CustomPaletteDialogState extends State<_CustomPaletteDialog> {
             _slider('Hue', hsv.hue, 360, (v) => _edit((c) => c.withHue(v))),
             _slider('Saturation', hsv.saturation, 1, (v) => _edit((c) => c.withSaturation(v))),
             _slider('Brightness', hsv.value, 1, (v) => _edit((c) => c.withValue(v))),
+            Row(children: [
+              Expanded(
+                child: TextField(
+                  controller: _hexCtrl,
+                  onChanged: _onHex,
+                  maxLength: 7,
+                  decoration: const InputDecoration(labelText: 'Hex code', prefixText: '#', counterText: ''),
+                ),
+              ),
+              TextButton(
+                onPressed: () => _edit((_) => HSVColor.fromColor(kDefaultCustomPalette[_selected % kDefaultCustomPalette.length])),
+                child: const Text('Reset color'),
+              ),
+            ]),
+            for (var i = 0; i < _colors.length; i++)
+              if (_lowContrast(_colors[i].toColor(), surface))
+                Text('Color ${i + 1} is hard to see on the background.',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.error)),
             const Text('Color 1 also sets the app theme.', style: TextStyle(fontSize: 12)),
           ],
         ),
