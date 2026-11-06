@@ -108,4 +108,4 @@ jobs:
             flutter test integration_test/random_tap_test.dart --dart-define=SEED=${{ inputs.seed }} --dart-define=EVENTS=${{ inputs.events }}
             flutter build apk --debug
             adb install -r build/app/outputs/flutter-apk/app-debug.apk
-            ./scripts/monkey.sh -p com.sentientbeingsoftware.gridmind -n 5000 -s ${{ inputs.seed }}
+            ./scripts/monkey.sh -n 5000 -s ${{ inputs.seed }}
