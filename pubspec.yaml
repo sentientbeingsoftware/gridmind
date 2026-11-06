@@ -74,6 +74,7 @@ dev_dependencies:
   # Automatically generates platform-specific app icons from a single image
   flutter_launcher_icons: ^0.14.4
   alchemist: ^0.14.1
+  patrol: ^4.11.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -141,3 +142,8 @@ flutter_launcher_icons:
   
   # Foreground image for adaptive icons
   adaptive_icon_foreground: "assets/images/gridmind_android_icon.png"
+
+patrol:
+  app_name: GridMind
+  android:
+    package_name: com.sentientbeingsoftware.gridmind
