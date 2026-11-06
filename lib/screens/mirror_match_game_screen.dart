@@ -364,6 +364,7 @@ class _MirrorMatchGameScreenState extends State<MirrorMatchGameScreen> with Conf
     }
 
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Mirror Match',
       gameId: 'mirror_match',
       gameConfig: {

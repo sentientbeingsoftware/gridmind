@@ -43,6 +43,10 @@ class BaseGameScreen extends StatefulWidget {
   /// Extra widget inserted above the main game board (e.g., Target Pattern in Slide & Solve)
   final Widget? topHudExtra;
 
+  /// Max factor the game area may be scaled up by in the wide (desktop) layout.
+  /// 1 = off. Games with fixed-size (phone-sized) boards opt in; phones are never scaled.
+  final double wideScale;
+
   /// The main interactive game grid/board widget
   final Widget child;
 
@@ -89,6 +93,7 @@ class BaseGameScreen extends StatefulWidget {
     this.victoryMessage = 'You Win!',
     this.gameOverMessage = 'Game Over!',
     this.topHudExtra,
+    this.wideScale = 1,
     required this.child,
     this.onReset,
     this.onUndo,
@@ -531,10 +536,15 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
                         builder: (context, area) => MediaQuery(
                           data: MediaQuery.of(context).copyWith(
                               size: Size(area.maxWidth, area.maxHeight)),
-                          child: _FitToHeight(
-                            topExtra: widget.topHudExtra,
-                            gap: gap,
-                            child: widget.child,
+                          child: _WideArea(
+                            child: _scaledUp(
+                              area,
+                              _FitToHeight(
+                                topExtra: widget.topHudExtra,
+                                gap: gap,
+                                child: widget.child,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -575,6 +585,20 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  /// Lays [content] out at a smaller virtual size and scales it up to fill
+  /// [area] (wide layout only), so fixed-size boards grow with the window.
+  Widget _scaledUp(BoxConstraints area, Widget content) {
+    final k = min(widget.wideScale, area.maxHeight / _kDesignHeight);
+    if (k <= 1) return content;
+    final virtual = Size(area.maxWidth / k, area.maxHeight / k);
+    return FittedBox(
+      child: MediaQuery(
+        data: MediaQuery.of(context).copyWith(size: virtual),
+        child: SizedBox.fromSize(size: virtual, child: content),
       ),
     );
   }
@@ -638,6 +662,20 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     );
   }
 }
+
+/// Marks the wide board area; games can ask [isWide] to use the extra room.
+class _WideArea extends InheritedWidget {
+  const _WideArea({required super.child});
+
+  static bool isWide(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_WideArea>() != null;
+
+  @override
+  bool updateShouldNotify(_WideArea old) => false;
+}
+
+/// True when [context] is inside the wide (desktop) board area.
+bool isWideBoardArea(BuildContext context) => _WideArea.isWide(context);
 
 /// Windows at least this wide (and wider than tall) use the side-panel layout.
 const double _kWideWidth = 720;

@@ -313,6 +313,7 @@ class _ShapeShiftGameScreenState extends State<ShapeShiftGameScreen> with Config
     final theme = Theme.of(context);
 
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Shape Shift',
       gameId: 'shape_shift',
       gameConfig: {

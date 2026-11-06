@@ -312,6 +312,7 @@ class _ClusterGameScreenState extends State<ClusterGameScreen> with ConfigHighSc
         : '$_moves (Zen)';
 
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Cluster',
       gameId: 'cluster',
       gameConfig: {

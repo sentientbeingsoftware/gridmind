@@ -270,6 +270,7 @@ class _ColorFloodGameScreenState extends State<ColorFloodGameScreen> with Config
     final activeColors = _palette.take(widget.colorCount).toList();
 
     return BaseGameScreen(
+      wideScale: 1.5,
       title: 'Color Flood',
       gameId: 'color_flood',
       gameConfig: {

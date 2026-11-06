@@ -316,6 +316,7 @@ child: GestureDetector(
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Territory',
       gameId: 'territory',
       gameConfig: {
