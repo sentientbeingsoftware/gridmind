@@ -114,8 +114,33 @@ class _BaseSetupScreenState extends State<BaseSetupScreen> {
         ? widget.game.scoreFormatter!(_highScore, _currentConfig)
         : _highScore.toString();
 
+    final startButton = SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 2,
+        ),
+        icon: const Icon(Icons.play_arrow, size: 28),
+        label: const Text('Start Game'),
+        onPressed: _startGame,
+      ),
+    );
+    // Short windows (1366x720 desktop, small phones): pin Start Game below the
+    // scrolling body so it never sits off-screen. Taller windows are unchanged.
+    final pinStart = MediaQuery.sizeOf(context).height < 740;
+
     return Scaffold(
       backgroundColor: background,
+      bottomNavigationBar: pinStart
+          ? SafeArea(child: Padding(padding: const EdgeInsets.fromLTRB(24, 8, 24, 12), child: startButton))
+          : null,
       appBar: AppBar(
         title: Text('${widget.game.title} - Setup'),
         elevation: 0,
@@ -279,27 +304,7 @@ class _BaseSetupScreenState extends State<BaseSetupScreen> {
               ),
             ),
 
-            const SizedBox(height: 32),
-
-            // Action Start Game
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 2,
-                ),
-                icon: const Icon(Icons.play_arrow, size: 28),
-                label: const Text('Start Game'),
-                onPressed: _startGame,
-              ),
-            ),
+            if (!pinStart) ...[const SizedBox(height: 32), startButton],
           ],
         ),
       ),
