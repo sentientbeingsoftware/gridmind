@@ -105,4 +105,9 @@ void main() {
     await t.pumpAndSettle();
     expect(await AppPersistenceService().hasSeenWalkthrough(kAppIntroWalkthroughId), true);
   });
+
+  test('Sum Grid walkthrough mentions tap-to-select', () {
+    final g = GameRegistry.games.firstWhere((g) => g.id == 'sumgrid');
+    expect(g.walkthroughSteps.join(' '), allOf(contains('Drag'), contains('tap them one by one'), contains('deselect')));
+  });
 }
