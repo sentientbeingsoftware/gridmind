@@ -605,6 +605,7 @@ class _WordSearchGameScreenState extends State<WordSearchGameScreen> with Config
           // Word search board container. Flexible: in a wide, short window the
           // square board shrinks to the height available instead of overflowing.
           Flexible(
+            flex: isWideBoardArea(context) ? 4 : 1, // wide: board gets most of the height
             child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: AspectRatio(

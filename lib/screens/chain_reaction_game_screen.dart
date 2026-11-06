@@ -481,6 +481,7 @@ class _ChainReactionGameScreenState extends State<ChainReactionGameScreen>
         _palette.isNotEmpty ? _palette[0] : theme.colorScheme.primary;
 
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Chain Reaction',
       gameId: 'chain_reaction',
       gameConfig: {

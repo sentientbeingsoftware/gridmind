@@ -345,6 +345,7 @@ class _GridMinerGameScreenState extends State<GridMinerGameScreen> with ConfigHi
         : '$_moves (Zen)';
 
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Grid Miner',
       gameId: 'grid_miner',
       gameConfig: {

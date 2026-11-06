@@ -255,6 +255,7 @@ class _GridRunnerGameScreenState extends State<GridRunnerGameScreen> with Config
     final themeColor = _palette.isNotEmpty ? _palette[0] : theme.colorScheme.primary;
 
     return BaseGameScreen(
+      wideScale: 3,
       title: 'Grid Runner',
       gameId: 'grid_runner',
       gameConfig: {
