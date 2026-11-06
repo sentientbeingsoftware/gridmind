@@ -5,6 +5,14 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Seed for random-tap test and monkey'
+        default: '42'
+      events:
+        description: 'Random-tap events'
+        default: '500'
 
 jobs:
   test:
@@ -66,3 +74,38 @@ jobs:
         run: flutter pub get
       - name: Build Windows
         run: flutter build windows --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}
+
+  # Manual-only, not a required check. No secrets: the app runs with telemetry/feedback keys unset.
+  stress-android:
+    name: Stress (emulator)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Random-tap test + adb monkey
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          # Any failure (exception, RenderFlex overflow, crash/ANR) exits non-zero and fails the job; details are in the job log.
+          script: |
+            flutter test integration_test/random_tap_test.dart --dart-define=SEED=${{ inputs.seed }} --dart-define=EVENTS=${{ inputs.events }}
+            flutter build apk --debug
+            adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            ./scripts/monkey.sh -p com.sentientbeingsoftware.gridmind -n 5000 -s ${{ inputs.seed }}
