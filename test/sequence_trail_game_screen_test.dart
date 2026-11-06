@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gridmind/screens/sequence_trail_game_screen.dart';
 
 void main() {
@@ -125,5 +126,26 @@ void main() {
 
       expect(find.text('Game Over!'), findsOneWidget);
     });
+// Decoys + moving: tick timers must not rebuild the grid, and must be cleaned up.
+    testWidgets('decoys+moving: ticks repaint rings only; dispose cancels timers', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await tester.pumpWidget(const MaterialApp(
+      home: SequenceTrailGameScreen(
+        gridSize: 4, timeLimit: 60.0, enableDecoys: true, enableMoving: true, lives: 3,
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump();
+    expect(find.text('X'), findsWidgets); // decoys present
+
+    final before = sequenceTrailCellBuilds;
+    await tester.pump(const Duration(milliseconds: 1000)); // ~10 ticks, no move yet
+    expect(sequenceTrailCellBuilds, before);
+
+    await tester.pump(const Duration(milliseconds: 700)); // move timer fires once
+    expect(sequenceTrailCellBuilds, greaterThan(before));
+
+    await tester.pumpWidget(const SizedBox()); // dispose; harness fails on pending timers
+  });
   });
 }

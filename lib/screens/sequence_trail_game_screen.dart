@@ -6,6 +6,9 @@ import '../services/app_persistence_service.dart';
 import 'mixins/config_high_score_mixin.dart';
 import 'base_game_screen.dart';
 
+@visibleForTesting
+int sequenceTrailCellBuilds = 0;
+
 class SequenceTrailGameScreen extends StatefulWidget {
   final int gridSize;
   final double timeLimit; // Seconds per number
@@ -61,6 +64,9 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
   Timer? _tickTimer;
   Timer? _moveTimer;
 
+  // Bumped each 100ms tick so only the countdown rings repaint, not the whole grid.
+  final ValueNotifier<int> _tickNotifier = ValueNotifier<int>(0);
+
   List<Color> _palette = [];
 
   @override
@@ -91,6 +97,7 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
   void dispose() {
     _tickTimer?.cancel();
     _moveTimer?.cancel();
+    _tickNotifier.dispose();
     super.dispose();
   }
 
@@ -177,17 +184,16 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
       if (GamePause.isPaused) return;
 
       bool timeExpired = false;
-      setState(() {
-        for (int i = 0; i < _grid.length; i++) {
-          if (_grid[i] >= 1) {
-            _lifetimes[i] -= 0.1 / widget.timeLimit;
-            if (_lifetimes[i] <= 0.0) {
-              _lifetimes[i] = 0.0;
-              timeExpired = true;
-            }
+      for (int i = 0; i < _grid.length; i++) {
+        if (_grid[i] >= 1) {
+          _lifetimes[i] -= 0.1 / widget.timeLimit;
+          if (_lifetimes[i] <= 0.0) {
+            _lifetimes[i] = 0.0;
+            timeExpired = true;
           }
         }
-      });
+      }
+      _tickNotifier.value++;
 
       if (timeExpired) {
         _handleTimeExpired();
@@ -406,7 +412,7 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
                     itemCount: widget.gridSize * widget.gridSize,
                     itemBuilder: (context, index) {
                       final val = _grid[index];
-                      final lifetime = _lifetimes[index];
+                      sequenceTrailCellBuilds++;
 
                       if (val == -1) {
                         return Container(
@@ -438,11 +444,14 @@ class _SequenceTrailGameScreenState extends State<SequenceTrailGameScreen> with 
                                 Positioned.fill(
                                   child: Padding(
                                     padding: const EdgeInsets.all(4.0),
-                                    child: CircularProgressIndicator(
-                                      value: lifetime,
-                                      strokeWidth: 3.5,
-                                      color: Colors.white24,
-                                      backgroundColor: Colors.transparent,
+                                    child: ValueListenableBuilder<int>(
+                                      valueListenable: _tickNotifier,
+                                      builder: (_, __, ___) => CircularProgressIndicator(
+                                        value: _lifetimes[index],
+                                        strokeWidth: 3.5,
+                                        color: Colors.white24,
+                                        backgroundColor: Colors.transparent,
+                                      ),
                                     ),
                                   ),
                                 ),
