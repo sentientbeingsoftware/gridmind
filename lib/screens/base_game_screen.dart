@@ -597,7 +597,12 @@ class _BaseGameScreenState extends State<BaseGameScreen> {
     final virtual = Size(area.maxWidth / k, area.maxHeight / k);
     return FittedBox(
       child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(size: virtual),
+        // Zero padding: this context is above SafeArea, and a leaked inset
+        // would make GridView/ListView boards pad themselves and clip.
+        data: MediaQuery.of(context).copyWith(
+            size: virtual,
+            padding: EdgeInsets.zero,
+            viewPadding: EdgeInsets.zero),
         child: SizedBox.fromSize(size: virtual, child: content),
       ),
     );
