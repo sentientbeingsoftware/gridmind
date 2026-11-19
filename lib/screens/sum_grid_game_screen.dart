@@ -2,7 +2,7 @@ import '../utils/game_pause.dart';
 import '../utils/announce.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/semantics.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:math';
 import 'dart:async';
 import '../services/app_persistence_service.dart';

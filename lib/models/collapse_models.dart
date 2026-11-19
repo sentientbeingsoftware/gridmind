@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Enum defining different collapse mechanics for the game
 /// Each mechanic determines how blocks fall when matches are cleared

@@ -1,6 +1,6 @@
 import '../utils/game_pause.dart';
 import '../utils/color_names.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:async';
 import 'dart:math';
 import '../models/pattern_speed.dart';

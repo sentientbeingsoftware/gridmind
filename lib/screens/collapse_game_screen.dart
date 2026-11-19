@@ -1,7 +1,7 @@
 // lib/collapse_game_screen.dart
 import 'package:flutter/semantics.dart';
 import '../utils/color_names.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:math';
 import '../models/collapse_models.dart';
 import 'base_game_screen.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../services/feedback_service.dart';
 
 /// Screen allowing the user to write and submit feedback/bug reports.

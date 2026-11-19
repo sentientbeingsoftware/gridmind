@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../utils/color_names.dart';
 
 const List<Color> kDefaultCustomPalette = [

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../theme/theme_controller.dart';
 import '../models/game_metadata.dart';
 import '../services/game_registry.dart';

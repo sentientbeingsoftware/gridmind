@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'screens/menu_screen.dart';
 import 'services/audio_service.dart';
 import 'services/score_migration.dart';

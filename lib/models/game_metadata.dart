@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Base class representing a configuration option for a game
 abstract class ConfigOption<T> {
