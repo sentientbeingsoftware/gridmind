@@ -40,7 +40,7 @@ dependencies:
   
   # iOS-style icons for cross-platform consistency
   # Provides CupertinoIcons class for iOS-style iconography
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   
   # URL launcher for opening external links
   # Used in settings screen to open support/donation links
@@ -73,7 +73,7 @@ dev_dependencies:
   # App icon generation tool
   # Automatically generates platform-specific app icons from a single image
   flutter_launcher_icons: ^0.14.4
-  alchemist: ^0.14.1
+  alchemist: ^0.15.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
