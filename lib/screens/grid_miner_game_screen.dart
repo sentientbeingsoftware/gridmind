@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'mixins/config_high_score_mixin.dart';
 import 'base_game_screen.dart';
 

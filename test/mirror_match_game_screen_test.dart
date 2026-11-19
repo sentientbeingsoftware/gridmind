@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:gridmind/screens/mirror_match_game_screen.dart';
 import 'package:gridmind/models/game_metadata.dart';
 import 'package:gridmind/services/game_registry.dart';

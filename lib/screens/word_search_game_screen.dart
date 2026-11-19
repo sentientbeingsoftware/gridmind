@@ -2,7 +2,7 @@ import '../utils/game_pause.dart';
 import '../utils/announce.dart';
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'mixins/config_high_score_mixin.dart';
 import 'base_game_screen.dart';
 

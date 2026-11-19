@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/screens/grid_painter_game_screen.dart';
 import 'package:gridmind/screens/path_weaver_game_screen.dart';

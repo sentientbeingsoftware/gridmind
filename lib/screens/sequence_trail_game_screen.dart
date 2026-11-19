@@ -1,5 +1,5 @@
 import '../utils/game_pause.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:math';
 import 'dart:async';
 import '../services/app_persistence_service.dart';

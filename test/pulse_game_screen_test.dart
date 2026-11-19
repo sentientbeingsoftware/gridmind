@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gridmind/screens/pulse_game_screen.dart';
 import 'package:gridmind/services/app_persistence_service.dart';

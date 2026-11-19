@@ -1,6 +1,6 @@
 import '../utils/game_pause.dart';
 import '../utils/color_names.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:math';
 import '../services/app_persistence_service.dart';
 import 'mixins/config_high_score_mixin.dart';

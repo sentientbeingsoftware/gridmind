@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:gridmind/screens/grid_painter_game_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

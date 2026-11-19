@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../services/telemetry_service.dart';
 
 /// Shows the first-run diagnostics prompt once. Telemetry stays off unless the

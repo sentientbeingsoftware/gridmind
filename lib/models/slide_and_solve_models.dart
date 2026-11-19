@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Complete list of colors available for the Slide and Solve game
 /// Provides a wide variety of colors for creating diverse and challenging patterns
