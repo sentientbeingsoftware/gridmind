@@ -55,8 +55,19 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - name: Install dependencies
         run: flutter pub get
-      - name: Build APK
-        run: flutter build apk --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}
+      # Uploaded artifacts are keyless on purpose: the repo is public, so a keyed APK/AAB would leak the API keys.
+      - name: Build APK (keyless, debug-signed)
+        run: flutter build apk
+      - name: Build App Bundle (keyless, debug-signed)
+        run: flutter build appbundle
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'  # PR runs only prove the builds; artifacts count against the storage quota
+        with:
+          name: gridmind-keyless-android
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          retention-days: 3
       - name: Build Linux
         run: flutter build linux --dart-define=FEEDBACK_API_KEY=${{ secrets.FEEDBACK_API_KEY }} --dart-define=TELEMETRY_TOKEN=${{ secrets.TELEMETRY_TOKEN }}
       - name: Build Web
